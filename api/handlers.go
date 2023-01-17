@@ -52,11 +52,14 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !json.Valid([]byte(body)) {
-		fmt.Println("invalid JSON!")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid JSON."))
+		fmt.Println("Invalid JSON.")
 		return
 	}
 
-	fmt.Println(string(body))
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
