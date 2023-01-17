@@ -2,10 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"io"
 	"net/http"
+	"os"
 )
 
 func HandleRequests(port uint) {
@@ -13,11 +14,25 @@ func HandleRequests(port uint) {
 		port = 8080 // default port
 	}
 
-	http.HandleFunc("/", home)
-	http.HandleFunc("/echo", echo)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", home)
+	mux.HandleFunc("/echo", echo)
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf(":%d", port),
+		Handler: mux,
+	}
 
 	fmt.Printf("Starting server on port %d...\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
+	err := server.ListenAndServe()
+	if err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			fmt.Println("Error - server closed.")
+		} else {
+			fmt.Printf("Error - %s\n", err)
+		}
+		os.Exit(1)
+	}
 }
 
 func echo(w http.ResponseWriter, r *http.Request) {
@@ -25,16 +40,18 @@ func echo(w http.ResponseWriter, r *http.Request) {
 
 	// API only accepts POST
 	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("API does not support this method."))
+		fmt.Println("API does not support this method.")
 		return
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
 
-	// if JSON is invalid return an error code.
-	if v := json.Valid([]byte(body)); !v {
+	if !json.Valid([]byte(body)) {
 		fmt.Println("invalid JSON!")
 		return
 	}
