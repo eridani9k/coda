@@ -60,6 +60,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+	fmt.Printf("response: %s\\n", string(body))
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
