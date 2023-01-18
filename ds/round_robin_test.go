@@ -17,7 +17,7 @@ var (
 		size: 1,
 	}
 
-	nonEmptyRR = &RoundRobin{
+	multipleEndpointRR = &RoundRobin{
 		endpoints: []endpoint{
 			{addr: "8080", valid: true},
 			{addr: "8081", valid: true},
@@ -28,9 +28,23 @@ var (
 		next: 1,
 		size: 4,
 	}
+
+	RRWithInvalids = &RoundRobin{
+		endpoints: []endpoint{
+			{addr: "8080", valid: true},
+			{addr: "8081", valid: false},
+			{addr: "8082", valid: true},
+			{addr: "8083", valid: false},
+			{addr: "8084", valid: false},
+			{addr: "8085", valid: true},
+		},
+		curr: 0,
+		next: 1,
+		size: 6,
+	}
 )
 
-func TestNewRR(t *testing.T) {
+func TestNewRoundRobin(t *testing.T) {
 	tests := map[string]struct {
 		addrs []string
 		want  *RoundRobin
@@ -45,7 +59,7 @@ func TestNewRR(t *testing.T) {
 		},
 		"multiple_addrs": {
 			addrs: []string{"8080", "8081", "8082", "8083"},
-			want:  nonEmptyRR,
+			want:  multipleEndpointRR,
 		},
 	}
 
@@ -59,19 +73,56 @@ func TestNewRR(t *testing.T) {
 	}
 }
 
-func TestRRStep(t *testing.T) {
+func TestSeekValid(t *testing.T) {
+	tests := map[string]struct {
+		rr    *RoundRobin
+		index int
+		want  int
+	}{
+		"t1": {
+			rr:    RRWithInvalids,
+			index: 0,
+			want:  2,
+		},
+		"t2": {
+			rr:    RRWithInvalids,
+			index: 2,
+			want:  5,
+		},
+		"t3": {
+			rr:    RRWithInvalids,
+			index: 5,
+			want:  0,
+		},
+	}
+
+	for name, ts := range tests {
+		t.Run(name, func(t *testing.T) {
+			got, err := ts.rr.SeekValid(ts.index)
+			if err != nil {
+				panic(err)
+			}
+
+			if got != ts.want {
+				t.Errorf("got: %+v, want: %+v", got, ts.want)
+			}
+		})
+	}
+}
+
+func TestStep(t *testing.T) {
 	tests := map[string]struct {
 		rr    *RoundRobin
 		index int
 		want  int
 	}{
 		"step_nonlooping": {
-			rr:    nonEmptyRR,
+			rr:    multipleEndpointRR,
 			index: 1,
 			want:  2,
 		},
 		"step_looping": {
-			rr:    nonEmptyRR,
+			rr:    multipleEndpointRR,
 			index: 3,
 			want:  0,
 		},
@@ -92,7 +143,7 @@ func TestRRStep(t *testing.T) {
 	}
 }
 
-func TestStep(t *testing.T) {
+func TestUtilStep(t *testing.T) {
 	tests := map[string]struct {
 		max   int
 		index int
