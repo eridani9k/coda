@@ -1,4 +1,4 @@
-package ds
+package router
 
 import (
 	"errors"
@@ -15,14 +15,14 @@ type endpoint struct {
 	valid bool
 }
 
-type RoundRobin struct {
+type Router struct {
 	endpoints []endpoint
 	curr      int
 	next      int
 	size      int
 }
 
-func NewRoundRobin(addrs []string) *RoundRobin {
+func NewRouter(addrs []string) *Router {
 	if len(addrs) == 0 {
 		return nil
 	}
@@ -38,7 +38,7 @@ func NewRoundRobin(addrs []string) *RoundRobin {
 		}
 	}
 
-	return &RoundRobin{
+	return &Router{
 		endpoints: endpoints,
 		curr:      curr,
 		next:      next,
@@ -46,7 +46,7 @@ func NewRoundRobin(addrs []string) *RoundRobin {
 	}
 }
 
-func (r *RoundRobin) Add(addr string) {
+func (r *Router) Add(addr string) {
 	r.endpoints = append(r.endpoints, endpoint{
 		addr:  addr,
 		valid: true,
@@ -54,12 +54,12 @@ func (r *RoundRobin) Add(addr string) {
 	r.size += 1
 }
 
-func (r *RoundRobin) Size() int {
+func (r *Router) Size() int {
 	return r.size
 }
 
 // SeekValid returns the index of the next valid address from element after index.
-func (r *RoundRobin) SeekValid(index int) (int, error) {
+func (r *Router) SeekValid(index int) (int, error) {
 	k := r.Step(index)
 	for k != index {
 		if r.endpoints[k].valid {
@@ -78,7 +78,7 @@ func (r *RoundRobin) SeekValid(index int) (int, error) {
 	return 0, ErrNoValidEndpointFound
 }
 
-func (r *RoundRobin) Step(index int) int {
+func (r *Router) Step(index int) int {
 	return step(r.size-1, index)
 }
 
@@ -91,6 +91,6 @@ func step(max int, index int) int {
 	return index + 1
 }
 
-func (r *RoundRobin) Invalidate(index int) {
+func (r *Router) Invalidate(index int) {
 	r.endpoints[index].valid = false
 }
