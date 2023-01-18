@@ -1,39 +1,56 @@
 package ds
 
 import (
-// "fmt"
+	"errors"
+	// "fmt"
 )
 
+var (
+	ErrNoValidEndpointFound = errors.New("no valid endpoint found")
+)
+
+// An endpoint is an address definition
+type endpoint struct {
+	addr  string
+	valid bool
+}
+
 type RoundRobin struct {
-	addrs []string
-	curr  int
-	next  int
-	size  int
+	endpoints []endpoint
+	curr      int
+	next      int
+	size      int
 }
 
 func NewRoundRobin(addrs []string) *RoundRobin {
-	if addrs == nil || len(addrs) == 0 {
+	if len(addrs) == 0 {
 		return nil
 	}
 
-	var curr int
-	var next int
-	if len(addrs) == 1 {
-		next = curr
-	} else {
-		next = curr + 1
+	curr := 0
+	next := step(len(addrs)-1, curr)
+
+	endpoints := make([]endpoint, len(addrs))
+	for i, addr := range addrs {
+		endpoints[i] = endpoint{
+			addr:  addr,
+			valid: true,
+		}
 	}
 
 	return &RoundRobin{
-		addrs: addrs,
-		curr:  curr,
-		next:  next,
-		size:  len(addrs),
+		endpoints: endpoints,
+		curr:      curr,
+		next:      next,
+		size:      len(addrs),
 	}
 }
 
 func (r *RoundRobin) Add(addr string) {
-	r.addrs = append(r.addrs, addr)
+	r.endpoints = append(r.endpoints, endpoint{
+		addr:  addr,
+		valid: true,
+	})
 	r.size += 1
 }
 
@@ -41,15 +58,39 @@ func (r *RoundRobin) Size() int {
 	return r.size
 }
 
-func (r *RoundRobin) Step(index int) int {
-	return step(len(r.addrs)-1, index)
+// SeekValid returns the index of the next valid address from element after index.
+func (r *RoundRobin) SeekValid(index int) (int, error) {
+	k := r.Step(index)
+	for k != index {
+		if r.endpoints[k].valid {
+			return k, nil
+		}
+		k = r.Step(k)
+	}
+
+	// All other endpoints are invalid and the iterator
+	// has looped back to the original input.
+	// TODO: can we simplify this?!
+	if r.endpoints[index].valid {
+		return index, nil
+	}
+
+	return 0, ErrNoValidEndpointFound
 }
 
-// step is 0-indexed.
+func (r *RoundRobin) Step(index int) int {
+	return step(r.size-1, index)
+}
+
+// max is 0-indexed.
 func step(max int, index int) int {
 	if index == max {
 		return 0
 	}
 
 	return index + 1
+}
+
+func (r *RoundRobin) Invalidate(index int) {
+	r.endpoints[index].valid = false
 }
