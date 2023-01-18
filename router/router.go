@@ -39,21 +39,6 @@ func NewRouter(addrs []string) *Router {
 	}
 }
 
-func (r *Router) NextAddress() (string, error) {
-	if r.NoEndpoints() {
-		return "", ErrNoEndpointsRegistered
-	}
-
-	endpoint, err := r.NextEndpoint()
-	if err != nil {
-		return "", err
-	}
-
-	addr := endpoint.GetAddress()
-
-	return addr, nil
-}
-
 // NextEndpoint returns the endpoint at r.curr and advances
 // both r.curr and r.next to their next valid positions.
 func (r *Router) NextEndpoint() (*endpoint, error) {
