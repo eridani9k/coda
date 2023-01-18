@@ -8,12 +8,6 @@ var (
 	ErrNoEndpointsRegistered = errors.New("no endpoints registered")
 )
 
-// An endpoint is an address definition
-type endpoint struct {
-	addr    string
-	healthy bool
-}
-
 type Router struct {
 	endpoints []endpoint
 	curr      int
@@ -92,11 +86,6 @@ func step(max int, index int) int {
 	}
 
 	return index + 1
-}
-
-// TODO: should be a method of endpoint, not Router
-func (r *Router) MarkUnhealthy(index int) {
-	r.endpoints[index].healthy = false
 }
 
 func (r *Router) Add(addr string) {
