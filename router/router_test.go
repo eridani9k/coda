@@ -17,11 +17,11 @@ func TestNewRouter(t *testing.T) {
 			want:  emptyRouter,
 		},
 		"single_addr": {
-			addrs: []string{"8080"},
+			addrs: []string{":8080"},
 			want:  routerWithSingleEndpoint,
 		},
 		"multiple_addrs": {
-			addrs: []string{"8080", "8081", "8082", "8083"},
+			addrs: []string{":8080", ":8081", ":8082", ":8083"},
 			want:  routerWithMultipleEndpoints,
 		},
 	}
@@ -54,7 +54,7 @@ func TestNext(t *testing.T) {
 		"single_endpoint": {
 			router: routerWithSingleEndpoint,
 			endpoint: endpoint{
-				addr:    "8080",
+				addr:    ":8080",
 				healthy: true,
 			},
 			newCurr: 0,
@@ -64,7 +64,7 @@ func TestNext(t *testing.T) {
 		"multiple_endpoints": {
 			router: routerWithMultipleEndpoints,
 			endpoint: endpoint{
-				addr:    "8080",
+				addr:    ":8080",
 				healthy: true,
 			},
 			newCurr: 1,
@@ -74,7 +74,7 @@ func TestNext(t *testing.T) {
 		"double_endpoints_01": {
 			router: routerNextV1,
 			endpoint: endpoint{
-				addr:    "8081",
+				addr:    ":8081",
 				healthy: true,
 			},
 			newCurr: 0,
@@ -84,7 +84,7 @@ func TestNext(t *testing.T) {
 		"double_endpoints_02": {
 			router: routerNextV2,
 			endpoint: endpoint{
-				addr:    "8080",
+				addr:    ":8080",
 				healthy: true,
 			},
 			newCurr: 1,
@@ -94,7 +94,7 @@ func TestNext(t *testing.T) {
 		"single_healthy_endpoint": {
 			router: routerNextV3,
 			endpoint: endpoint{
-				addr:    "8083",
+				addr:    ":8083",
 				healthy: true,
 			},
 			newCurr: 3,
@@ -104,7 +104,7 @@ func TestNext(t *testing.T) {
 		"mixed_endpoints_01": {
 			router: routerNextV4,
 			endpoint: endpoint{
-				addr:    "8083",
+				addr:    ":8083",
 				healthy: true,
 			},
 			newCurr: 1,
@@ -114,7 +114,7 @@ func TestNext(t *testing.T) {
 		"mixed_endpoints_05": {
 			router: routerNextV5,
 			endpoint: endpoint{
-				addr:    "8085",
+				addr:    ":8085",
 				healthy: true,
 			},
 			newCurr: 0,

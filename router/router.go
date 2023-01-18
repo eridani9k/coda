@@ -45,10 +45,6 @@ func NewRouter(addrs []string) *Router {
 	}
 }
 
-func (r *Router) NoEndpoints() bool {
-	return r.size == 0
-}
-
 // Next returns the endpoint at r.curr and advances
 // both r.curr and r.next.
 func (r *Router) Next() (endpoint, error) {
@@ -113,4 +109,8 @@ func (r *Router) Add(addr string) {
 
 func (r *Router) Size() int {
 	return r.size
+}
+
+func (r *Router) NoEndpoints() bool {
+	return r.size == 0
 }
