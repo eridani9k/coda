@@ -51,7 +51,7 @@ func TestNewRouter(t *testing.T) {
 	}{
 		"empty_addr": {
 			addrs: []string{},
-			want:  nil,
+			want:  emptyRouter,
 		},
 		"single_addr": {
 			addrs: []string{"8080"},
@@ -78,28 +78,38 @@ func TestSeekHealthy(t *testing.T) {
 		router *Router
 		index  int
 		want   int
+		err    error
 	}{
 		"t1": {
 			router: RouterWithUnhealthyEndpoints,
 			index:  0,
 			want:   2,
+			err:    nil,
 		},
 		"t2": {
 			router: RouterWithUnhealthyEndpoints,
 			index:  2,
 			want:   5,
+			err:    nil,
 		},
 		"t3": {
 			router: RouterWithUnhealthyEndpoints,
 			index:  5,
 			want:   0,
+			err:    nil,
+		},
+		"t4": {
+			router: emptyRouter,
+			index:  1,
+			want:   0,
+			err:    ErrNoValidEndpointFound,
 		},
 	}
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := ts.router.SeekHealthy(ts.index)
-			if got != ts.want {
+			got, err := ts.router.SeekHealthy(ts.index)
+			if got != ts.want || err != ts.err {
 				t.Errorf("got: %+v, want: %+v", got, ts.want)
 			}
 		})
@@ -131,7 +141,7 @@ func TestStep(t *testing.T) {
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := ts.router.Step(ts.index)
+			got := ts.router.step(ts.index)
 			if got != ts.want {
 				t.Errorf("got: %+v, want: %+v", got, ts.want)
 			}

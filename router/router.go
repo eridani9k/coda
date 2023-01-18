@@ -24,7 +24,7 @@ type Router struct {
 
 func NewRouter(addrs []string) *Router {
 	if len(addrs) == 0 {
-		return nil
+		return &Router{}
 	}
 
 	curr := 0
@@ -58,25 +58,34 @@ func (r *Router) Size() int {
 	return r.size
 }
 
-// SeekValid returns the index of the next valid address from element after index.
-func (r *Router) SeekHealthy(index int) int {
-	k := r.Step(index)
-	for k != index {
-		if r.endpoints[k].healthy {
-			return k
-		}
-		k = r.Step(k)
+// SeekHealthy returns the index of the next healthy
+// endpoint starting from the element after index.
+func (r *Router) SeekHealthy(index int) (int, error) {
+	if r.size == 0 {
+		return 0, ErrNoValidEndpointFound
 	}
 
-	// All other endpoints are unhealthy, return index.
-	return index
+	k := r.step(index)
+	for k != index {
+		if r.endpoints[k].healthy {
+			return k, nil
+		}
+		k = r.step(k)
+	}
+
+	// All other endpoints are unhealthy or index is the only element.
+	// Return index.
+	return index, nil
 }
 
-func (r *Router) Step(index int) int {
-	return step(r.size-1, index)
+// step is only called when len(r.endpoints) > 0.
+// Length checks are done on the ancestor function.
+func (r *Router) step(index int) int {
+	return step(len(r.endpoints)-1, index)
 }
 
 // max is 0-indexed.
+// TODO: Convert argument to uint?
 func step(max int, index int) int {
 	if index == max {
 		return 0
