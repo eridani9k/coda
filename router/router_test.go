@@ -44,14 +44,24 @@ func TestNext(t *testing.T) {
 		newNext  int
 		err      error
 	}{
-		"t1": {
+		"empty": {
 			router:   emptyRouter,
 			endpoint: endpoint{},
 			newCurr:  0,
 			newNext:  0,
 			err:      ErrNoEndpointsRegistered,
 		},
-		"t2": {
+		"single_endpoint": {
+			router: routerWithSingleEndpoint,
+			endpoint: endpoint{
+				addr:    "8080",
+				healthy: true,
+			},
+			newCurr: 0,
+			newNext: 0,
+			err:     nil,
+		},
+		"multiple_endpoints": {
 			router: routerWithMultipleEndpoints,
 			endpoint: endpoint{
 				addr:    "8080",
@@ -59,6 +69,56 @@ func TestNext(t *testing.T) {
 			},
 			newCurr: 1,
 			newNext: 2,
+			err:     nil,
+		},
+		"double_endpoints_01": {
+			router: routerNextV1,
+			endpoint: endpoint{
+				addr:    "8081",
+				healthy: true,
+			},
+			newCurr: 0,
+			newNext: 1,
+			err:     nil,
+		},
+		"double_endpoints_02": {
+			router: routerNextV2,
+			endpoint: endpoint{
+				addr:    "8080",
+				healthy: true,
+			},
+			newCurr: 1,
+			newNext: 0,
+			err:     nil,
+		},
+		"single_healthy_endpoint": {
+			router: routerNextV3,
+			endpoint: endpoint{
+				addr:    "8083",
+				healthy: true,
+			},
+			newCurr: 3,
+			newNext: 3,
+			err:     nil,
+		},
+		"mixed_endpoints_01": {
+			router: routerNextV4,
+			endpoint: endpoint{
+				addr:    "8083",
+				healthy: true,
+			},
+			newCurr: 1,
+			newNext: 3,
+			err:     nil,
+		},
+		"mixed_endpoints_05": {
+			router: routerNextV5,
+			endpoint: endpoint{
+				addr:    "8085",
+				healthy: true,
+			},
+			newCurr: 0,
+			newNext: 3,
 			err:     nil,
 		},
 	}
