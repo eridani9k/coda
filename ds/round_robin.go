@@ -1,7 +1,7 @@
 package ds
 
 import (
-//"fmt"
+// "fmt"
 )
 
 type RoundRobin struct {
@@ -42,13 +42,12 @@ func (r *RoundRobin) Size() int {
 }
 
 func (r *RoundRobin) Step(index int) int {
-	return step(r.addrs, index)
+	return step(len(r.addrs)-1, index)
 }
 
-// TODO: abstract this further to step(max int, index int).
-// Passing the slice is unnecessary.
-func step(s []string, index int) int {
-	if index == len(s)-1 {
+// step is 0-indexed.
+func step(max int, index int) int {
+	if index == max {
 		return 0
 	}
 
