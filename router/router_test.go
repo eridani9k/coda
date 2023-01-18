@@ -10,7 +10,7 @@ var (
 
 	singleEndpointRouter = &Router{
 		endpoints: []endpoint{
-			{addr: "8080", valid: true},
+			{addr: "8080", healthy: true},
 		},
 		curr: 0,
 		next: 0,
@@ -19,24 +19,24 @@ var (
 
 	multipleEndpointRouter = &Router{
 		endpoints: []endpoint{
-			{addr: "8080", valid: true},
-			{addr: "8081", valid: true},
-			{addr: "8082", valid: true},
-			{addr: "8083", valid: true},
+			{addr: "8080", healthy: true},
+			{addr: "8081", healthy: true},
+			{addr: "8082", healthy: true},
+			{addr: "8083", healthy: true},
 		},
 		curr: 0,
 		next: 1,
 		size: 4,
 	}
 
-	RouterWithInvalidEndpoints = &Router{
+	RouterWithUnhealthyEndpoints = &Router{
 		endpoints: []endpoint{
-			{addr: "8080", valid: true},
-			{addr: "8081", valid: false},
-			{addr: "8082", valid: true},
-			{addr: "8083", valid: false},
-			{addr: "8084", valid: false},
-			{addr: "8085", valid: true},
+			{addr: "8080", healthy: true},
+			{addr: "8081", healthy: false},
+			{addr: "8082", healthy: true},
+			{addr: "8083", healthy: false},
+			{addr: "8084", healthy: false},
+			{addr: "8085", healthy: true},
 		},
 		curr: 0,
 		next: 1,
@@ -73,24 +73,24 @@ func TestNewRouter(t *testing.T) {
 	}
 }
 
-func TestSeekValid(t *testing.T) {
+func TestSeekHealthy(t *testing.T) {
 	tests := map[string]struct {
 		router *Router
 		index  int
 		want   int
 	}{
 		"t1": {
-			router: RouterWithInvalidEndpoints,
+			router: RouterWithUnhealthyEndpoints,
 			index:  0,
 			want:   2,
 		},
 		"t2": {
-			router: RouterWithInvalidEndpoints,
+			router: RouterWithUnhealthyEndpoints,
 			index:  2,
 			want:   5,
 		},
 		"t3": {
-			router: RouterWithInvalidEndpoints,
+			router: RouterWithUnhealthyEndpoints,
 			index:  5,
 			want:   0,
 		},
@@ -98,11 +98,7 @@ func TestSeekValid(t *testing.T) {
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := ts.router.SeekValid(ts.index)
-			if err != nil {
-				panic(err)
-			}
-
+			got := ts.router.SeekHealthy(ts.index)
 			if got != ts.want {
 				t.Errorf("got: %+v, want: %+v", got, ts.want)
 			}
@@ -116,6 +112,11 @@ func TestStep(t *testing.T) {
 		index  int
 		want   int
 	}{
+		"step_single_element": {
+			router: singleEndpointRouter,
+			index:  0,
+			want:   0,
+		},
 		"step_nonlooping": {
 			router: multipleEndpointRouter,
 			index:  1,
@@ -124,11 +125,6 @@ func TestStep(t *testing.T) {
 		"step_looping": {
 			router: multipleEndpointRouter,
 			index:  3,
-			want:   0,
-		},
-		"step_single_element": {
-			router: singleEndpointRouter,
-			index:  0,
 			want:   0,
 		},
 	}
@@ -149,6 +145,11 @@ func TestUtilStep(t *testing.T) {
 		index int
 		want  int
 	}{
+		"single_element": {
+			max:   0,
+			index: 0,
+			want:  0,
+		},
 		"increment_nonlooping_01": {
 			max:   3,
 			index: 0,
@@ -162,11 +163,6 @@ func TestUtilStep(t *testing.T) {
 		"increment_looping": {
 			max:   3,
 			index: 3,
-			want:  0,
-		},
-		"single_element": {
-			max:   0,
-			index: 0,
 			want:  0,
 		},
 	}

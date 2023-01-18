@@ -11,8 +11,8 @@ var (
 
 // An endpoint is an address definition
 type endpoint struct {
-	addr  string
-	valid bool
+	addr    string
+	healthy bool
 }
 
 type Router struct {
@@ -33,8 +33,8 @@ func NewRouter(addrs []string) *Router {
 	endpoints := make([]endpoint, len(addrs))
 	for i, addr := range addrs {
 		endpoints[i] = endpoint{
-			addr:  addr,
-			valid: true,
+			addr:    addr,
+			healthy: true,
 		}
 	}
 
@@ -48,8 +48,8 @@ func NewRouter(addrs []string) *Router {
 
 func (r *Router) Add(addr string) {
 	r.endpoints = append(r.endpoints, endpoint{
-		addr:  addr,
-		valid: true,
+		addr:    addr,
+		healthy: true,
 	})
 	r.size += 1
 }
@@ -59,23 +59,17 @@ func (r *Router) Size() int {
 }
 
 // SeekValid returns the index of the next valid address from element after index.
-func (r *Router) SeekValid(index int) (int, error) {
+func (r *Router) SeekHealthy(index int) int {
 	k := r.Step(index)
 	for k != index {
-		if r.endpoints[k].valid {
-			return k, nil
+		if r.endpoints[k].healthy {
+			return k
 		}
 		k = r.Step(k)
 	}
 
-	// All other endpoints are invalid and the iterator
-	// has looped back to the original input.
-	// TODO: can we simplify this?!
-	if r.endpoints[index].valid {
-		return index, nil
-	}
-
-	return 0, ErrNoValidEndpointFound
+	// All other endpoints are unhealthy, return index.
+	return index
 }
 
 func (r *Router) Step(index int) int {
@@ -91,6 +85,6 @@ func step(max int, index int) int {
 	return index + 1
 }
 
-func (r *Router) Invalidate(index int) {
-	r.endpoints[index].valid = false
+func (r *Router) MarkUnhealthy(index int) {
+	r.endpoints[index].healthy = false
 }
