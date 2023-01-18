@@ -5,44 +5,7 @@ import (
 	"testing"
 )
 
-var (
-	emptyRouter = &Router{}
-
-	singleEndpointRouter = &Router{
-		endpoints: []endpoint{
-			{addr: "8080", healthy: true},
-		},
-		curr: 0,
-		next: 0,
-		size: 1,
-	}
-
-	multipleEndpointRouter = &Router{
-		endpoints: []endpoint{
-			{addr: "8080", healthy: true},
-			{addr: "8081", healthy: true},
-			{addr: "8082", healthy: true},
-			{addr: "8083", healthy: true},
-		},
-		curr: 0,
-		next: 1,
-		size: 4,
-	}
-
-	RouterWithUnhealthyEndpoints = &Router{
-		endpoints: []endpoint{
-			{addr: "8080", healthy: true},
-			{addr: "8081", healthy: false},
-			{addr: "8082", healthy: true},
-			{addr: "8083", healthy: false},
-			{addr: "8084", healthy: false},
-			{addr: "8085", healthy: true},
-		},
-		curr: 0,
-		next: 1,
-		size: 6,
-	}
-)
+// Refer to test_vars.go for structures used in this file.
 
 func TestNewRouter(t *testing.T) {
 	tests := map[string]struct {
@@ -55,11 +18,11 @@ func TestNewRouter(t *testing.T) {
 		},
 		"single_addr": {
 			addrs: []string{"8080"},
-			want:  singleEndpointRouter,
+			want:  routerWithSingleEndpoint,
 		},
 		"multiple_addrs": {
 			addrs: []string{"8080", "8081", "8082", "8083"},
-			want:  multipleEndpointRouter,
+			want:  routerWithMultipleEndpoints,
 		},
 	}
 
@@ -80,25 +43,49 @@ func TestSeekHealthy(t *testing.T) {
 		want   int
 		err    error
 	}{
-		"t1": {
-			router: RouterWithUnhealthyEndpoints,
+		"multiple_unhealthy_01": {
+			router: routerWithUnhealthyEndpointsV1,
 			index:  0,
 			want:   2,
 			err:    nil,
 		},
-		"t2": {
-			router: RouterWithUnhealthyEndpoints,
+		"multiple_unhealthy_02": {
+			router: routerWithUnhealthyEndpointsV1,
 			index:  2,
 			want:   5,
 			err:    nil,
 		},
-		"t3": {
-			router: RouterWithUnhealthyEndpoints,
+		"multiple_unhealthy_03": {
+			router: routerWithUnhealthyEndpointsV1,
 			index:  5,
 			want:   0,
 			err:    nil,
 		},
-		"t4": {
+		"multiple_unhealthy_04": {
+			router: routerWithUnhealthyEndpointsV2,
+			index:  2,
+			want:   4,
+			err:    nil,
+		},
+		"multiple_unhealthy_05": {
+			router: routerWithUnhealthyEndpointsV2,
+			index:  4,
+			want:   2,
+			err:    nil,
+		},
+		"single_healthy_01": {
+			router: routerWithSingleHealthyEndpoint,
+			index:  3,
+			want:   3,
+			err:    nil,
+		},
+		"single_healthy_02": {
+			router: routerWithSingleEndpoint,
+			index:  0,
+			want:   0,
+			err:    nil,
+		},
+		"emptyRouter": {
 			router: emptyRouter,
 			index:  1,
 			want:   0,
@@ -123,17 +110,17 @@ func TestStep(t *testing.T) {
 		want   int
 	}{
 		"step_single_element": {
-			router: singleEndpointRouter,
+			router: routerWithSingleEndpoint,
 			index:  0,
 			want:   0,
 		},
 		"step_nonlooping": {
-			router: multipleEndpointRouter,
+			router: routerWithMultipleEndpoints,
 			index:  1,
 			want:   2,
 		},
 		"step_looping": {
-			router: multipleEndpointRouter,
+			router: routerWithMultipleEndpoints,
 			index:  3,
 			want:   0,
 		},
