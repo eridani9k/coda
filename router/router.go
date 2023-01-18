@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	ErrNoValidEndpointFound = errors.New("no valid endpoint found")
+	ErrNoEndpointsRegistered = errors.New("no endpoints registered")
 )
 
 // An endpoint is an address definition
@@ -46,35 +46,41 @@ func NewRouter(addrs []string) *Router {
 	}
 }
 
-func (r *Router) Add(addr string) {
-	r.endpoints = append(r.endpoints, endpoint{
-		addr:    addr,
-		healthy: true,
-	})
-	r.size += 1
+func (r *Router) NoEndpoints() bool {
+	return r.size == 0
 }
 
-func (r *Router) Size() int {
-	return r.size
-}
-
-// SeekHealthy returns the index of the next healthy
-// endpoint starting from the element after index.
-func (r *Router) SeekHealthy(index int) (int, error) {
-	if r.size == 0 {
-		return 0, ErrNoValidEndpointFound
+// Next returns the endpoint at r.curr and advances
+// both r.curr and r.next.
+func (r *Router) Next() (endpoint, error) {
+	if r.NoEndpoints() {
+		return endpoint{}, ErrNoEndpointsRegistered
 	}
 
+	endpoint := r.getEndpoint()
+	r.curr = r.next
+	r.next = r.seekHealthy(r.next)
+
+	return endpoint, nil
+}
+
+func (r *Router) getEndpoint() endpoint {
+	return r.endpoints[r.curr]
+}
+
+// seekHealthy returns the index of the next healthy
+// endpoint starting from the element after index.
+func (r *Router) seekHealthy(index int) int {
 	k := r.step(index)
 	for k != index {
 		if r.endpoints[k].healthy {
-			return k, nil
+			return k
 		}
 		k = r.step(k)
 	}
 
 	// All other endpoints are unhealthy or index is the only element.
-	return index, nil
+	return index
 }
 
 // step is only called when len(r.endpoints) > 0.
@@ -93,6 +99,19 @@ func step(max int, index int) int {
 	return index + 1
 }
 
+// TODO: should be a method of endpoint, not Router
 func (r *Router) MarkUnhealthy(index int) {
 	r.endpoints[index].healthy = false
+}
+
+func (r *Router) Add(addr string) {
+	r.endpoints = append(r.endpoints, endpoint{
+		addr:    addr,
+		healthy: true,
+	})
+	r.size += 1
+}
+
+func (r *Router) Size() int {
+	return r.size
 }
