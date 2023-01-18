@@ -39,9 +39,24 @@ func NewRouter(addrs []string) *Router {
 	}
 }
 
-// Next returns the endpoint at r.curr and advances
-// both r.curr and r.next.
-func (r *Router) Next() (*endpoint, error) {
+func (r *Router) NextAddress() (string, error) {
+	if r.NoEndpoints() {
+		return "", ErrNoEndpointsRegistered
+	}
+
+	endpoint, err := r.NextEndpoint()
+	if err != nil {
+		return "", err
+	}
+
+	addr := endpoint.GetAddress()
+
+	return addr, nil
+}
+
+// NextEndpoint returns the endpoint at r.curr and advances
+// both r.curr and r.next to their next valid positions.
+func (r *Router) NextEndpoint() (*endpoint, error) {
 	if r.NoEndpoints() {
 		return nil, ErrNoEndpointsRegistered
 	}
@@ -88,7 +103,7 @@ func step(max int, index int) int {
 	return index + 1
 }
 
-func (r *Router) Add(addr string) {
+func (r *Router) Register(addr string) {
 	r.endpoints = append(r.endpoints, &endpoint{
 		addr:    addr,
 		healthy: true,
