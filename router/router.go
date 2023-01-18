@@ -9,7 +9,7 @@ var (
 )
 
 type Router struct {
-	endpoints []endpoint
+	endpoints []*endpoint
 	curr      int
 	next      int
 	size      int
@@ -23,9 +23,9 @@ func NewRouter(addrs []string) *Router {
 	curr := 0
 	next := step(len(addrs)-1, curr)
 
-	endpoints := make([]endpoint, len(addrs))
+	endpoints := make([]*endpoint, len(addrs))
 	for i, addr := range addrs {
-		endpoints[i] = endpoint{
+		endpoints[i] = &endpoint{
 			addr:    addr,
 			healthy: true,
 		}
@@ -41,9 +41,9 @@ func NewRouter(addrs []string) *Router {
 
 // Next returns the endpoint at r.curr and advances
 // both r.curr and r.next.
-func (r *Router) Next() (endpoint, error) {
+func (r *Router) Next() (*endpoint, error) {
 	if r.NoEndpoints() {
-		return endpoint{}, ErrNoEndpointsRegistered
+		return nil, ErrNoEndpointsRegistered
 	}
 
 	endpoint := r.getEndpoint()
@@ -53,7 +53,7 @@ func (r *Router) Next() (endpoint, error) {
 	return endpoint, nil
 }
 
-func (r *Router) getEndpoint() endpoint {
+func (r *Router) getEndpoint() *endpoint {
 	return r.endpoints[r.curr]
 }
 
@@ -89,7 +89,7 @@ func step(max int, index int) int {
 }
 
 func (r *Router) Add(addr string) {
-	r.endpoints = append(r.endpoints, endpoint{
+	r.endpoints = append(r.endpoints, &endpoint{
 		addr:    addr,
 		healthy: true,
 	})

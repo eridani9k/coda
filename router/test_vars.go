@@ -6,7 +6,7 @@ var (
 	emptyRouter = &Router{}
 
 	routerWithSingleEndpoint = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 		},
 		curr: 0,
@@ -15,7 +15,7 @@ var (
 	}
 
 	routerWithMultipleEndpoints = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
 			{addr: ":8082", healthy: true},
@@ -27,7 +27,7 @@ var (
 	}
 
 	routerWithUnhealthyEndpointsV1 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: false},
 			{addr: ":8082", healthy: true},
@@ -41,7 +41,7 @@ var (
 	}
 
 	routerWithUnhealthyEndpointsV2 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
 			{addr: ":8082", healthy: true},
@@ -55,7 +55,7 @@ var (
 	}
 
 	routerWithSingleHealthyEndpoint = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
 			{addr: ":8082", healthy: false},
@@ -69,7 +69,7 @@ var (
 	}
 
 	routerNextV1 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
 		},
@@ -79,7 +79,7 @@ var (
 	}
 
 	routerNextV2 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
 		},
@@ -89,7 +89,7 @@ var (
 	}
 
 	routerNextV3 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
 			{addr: ":8082", healthy: false},
@@ -103,7 +103,7 @@ var (
 	}
 
 	routerNextV4 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: true},
 			{addr: ":8082", healthy: false},
@@ -117,7 +117,7 @@ var (
 	}
 
 	routerNextV5 = &Router{
-		endpoints: []endpoint{
+		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8082", healthy: false},
 			{addr: ":8084", healthy: false},

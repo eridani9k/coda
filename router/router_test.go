@@ -39,21 +39,21 @@ func TestNewRouter(t *testing.T) {
 func TestNext(t *testing.T) {
 	tests := map[string]struct {
 		router   *Router
-		endpoint endpoint
+		endpoint *endpoint
 		newCurr  int
 		newNext  int
 		err      error
 	}{
 		"empty": {
 			router:   emptyRouter,
-			endpoint: endpoint{},
+			endpoint: nil,
 			newCurr:  0,
 			newNext:  0,
 			err:      ErrNoEndpointsRegistered,
 		},
 		"single_endpoint": {
 			router: routerWithSingleEndpoint,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8080",
 				healthy: true,
 			},
@@ -63,7 +63,7 @@ func TestNext(t *testing.T) {
 		},
 		"multiple_endpoints": {
 			router: routerWithMultipleEndpoints,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8080",
 				healthy: true,
 			},
@@ -73,7 +73,7 @@ func TestNext(t *testing.T) {
 		},
 		"double_endpoints_01": {
 			router: routerNextV1,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8081",
 				healthy: true,
 			},
@@ -83,7 +83,7 @@ func TestNext(t *testing.T) {
 		},
 		"double_endpoints_02": {
 			router: routerNextV2,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8080",
 				healthy: true,
 			},
@@ -93,7 +93,7 @@ func TestNext(t *testing.T) {
 		},
 		"single_healthy_endpoint": {
 			router: routerNextV3,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8083",
 				healthy: true,
 			},
@@ -103,7 +103,7 @@ func TestNext(t *testing.T) {
 		},
 		"mixed_endpoints_01": {
 			router: routerNextV4,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8083",
 				healthy: true,
 			},
@@ -113,7 +113,7 @@ func TestNext(t *testing.T) {
 		},
 		"mixed_endpoints_05": {
 			router: routerNextV5,
-			endpoint: endpoint{
+			endpoint: &endpoint{
 				addr:    ":8085",
 				healthy: true,
 			},
