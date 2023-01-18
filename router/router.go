@@ -74,7 +74,6 @@ func (r *Router) SeekHealthy(index int) (int, error) {
 	}
 
 	// All other endpoints are unhealthy or index is the only element.
-	// Return index.
 	return index, nil
 }
 
