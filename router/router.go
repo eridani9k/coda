@@ -59,9 +59,14 @@ func (r *Router) Advance() (*endpoint, error) {
 	return endpoint, nil
 }
 
-// Peek returns the endpoint at r.next, but does not advance the pointers.
-func (r *Router) Peek() *endpoint {
-	return r.endpoints[r.next]
+// Peek returns the endpoint at r.next, but does not
+// advance r.curr or r.next.
+func (r *Router) Peek() (*endpoint, error) {
+	if r.NoEndpoints() {
+		return nil, ErrNoEndpointsRegistered
+	}
+
+	return r.endpoints[r.next], nil
 }
 
 func (r *Router) getEndpoint() *endpoint {
@@ -69,7 +74,11 @@ func (r *Router) getEndpoint() *endpoint {
 }
 
 // seekHealthy returns the index of the next healthy
-// endpoint starting from the element after index.
+// endpoint starting from the endpoint after index.
+// seekHealthy assumes the endpoint at index is healthy,
+// and returns index if:
+//   - r.endpoints only contain the endpoint at index,
+//   - all other endpoints in r.endpoints are unhealthy.
 func (r *Router) seekHealthy(index int) int {
 	k := r.step(index)
 	for k != index {
@@ -83,14 +92,15 @@ func (r *Router) seekHealthy(index int) int {
 	return index
 }
 
-// step is only called when len(r.endpoints) > 0.
-// Length checks are done on the ancestor function.
+// step returns the index of the next element.
+// If index has reached the end of the collection,
+// loop back to 0.
 func (r *Router) step(index int) int {
 	return step(len(r.endpoints)-1, index)
 }
 
-// max is 0-indexed.
-// TODO: Convert argument to uint?
+// step returns the next integer after index.
+// If index exceeds max, loop back to 0.
 func step(max int, index int) int {
 	if index == max {
 		return 0
@@ -99,6 +109,8 @@ func step(max int, index int) int {
 	return index + 1
 }
 
+// Register adds an endpoint instance to r.endpoints.
+// New endpoints are always marked by default as healthy.
 func (r *Router) Register(addr string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()

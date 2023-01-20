@@ -40,6 +40,10 @@ func HandleRequests(port uint) {
 func echo(w http.ResponseWriter, r *http.Request) {
 	showEndpoint("/echo")
 
+	// TODO: Find a way to utilize r.Context() instead of using
+	// showEndpoint().
+	//fmt.Println(r.Context())
+
 	// API only accepts POST
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
