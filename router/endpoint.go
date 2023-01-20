@@ -6,14 +6,14 @@ type endpoint struct {
 	healthy bool
 }
 
-func (e *endpoint) GetAddress() string {
+func (e *endpoint) getAddress() string {
 	return e.addr
 }
 
-func (e *endpoint) IsHealthy() bool {
+func (e *endpoint) isHealthy() bool {
 	return e.healthy
 }
 
-func (e *endpoint) MarkUnhealthy() {
+func (e *endpoint) markUnhealthy() {
 	e.healthy = false
 }

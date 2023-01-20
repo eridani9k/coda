@@ -2,6 +2,7 @@ package router
 
 import (
 	"errors"
+	"sync"
 )
 
 var (
@@ -13,6 +14,8 @@ type Router struct {
 	curr      int
 	next      int
 	size      int
+
+	mu sync.Mutex
 }
 
 func NewRouter(addrs []string) *Router {
@@ -45,6 +48,9 @@ func (r *Router) Advance() (*endpoint, error) {
 	if r.NoEndpoints() {
 		return nil, ErrNoEndpointsRegistered
 	}
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	endpoint := r.getEndpoint()
 	r.curr = r.next
@@ -94,6 +100,9 @@ func step(max int, index int) int {
 }
 
 func (r *Router) Register(addr string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.endpoints = append(r.endpoints, &endpoint{
 		addr:    addr,
 		healthy: true,
