@@ -16,51 +16,43 @@ func InitializeRouter(port uint) {
 		port = 8080 // default port
 	}
 
-	// ReverseProxy
-	//   1. Create a reverse proxy handler.
-	//   2. set backend server/s for retrieval
-	//   3. rewrite appropriate headers.
-	//   4. send request to backend server/s
-	//   5. edit headers before sending response back to client?!`
-
 	// TODO: read from config file!
 	balancer := NewBalancer([]string{
 		"http://127.0.0.1:8081",
 		"http://127.0.0.1:8082",
-		"http://127.0.0.1:8083",
+		//		"http://127.0.0.1:8083",
 	})
 
 	proxy := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		var forwardErr error
+		var resp *http.Response
+		firstRun := true // sentinel bool to ensure the following loop runs at least once.
 
-		/*
-			var forwardErr error
-			var resp *http.Response
-			firstRun := true // sentinel bool to ensure the following loop runs at least once.
-		*/
+		for forwardErr != nil || firstRun {
+			firstRun = false
 
-		endpoint, err := balancer.Advance()
-		if err != nil { // ErrNoValidEndpoints
-			utils.FormatMessage("No valid endpoints for routing.")
-			rw.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(rw, err)
-			return
-		}
+			endpoint, err := balancer.Advance()
+			if err != nil { // ErrNoValidEndpoints
+				utils.FormatMessage("No valid endpoints for routing.")
+				rw.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprint(rw, err)
+				return
+			}
 
-		targetAddr := endpoint.getAddress()
+			targetAddr := endpoint.getAddress()
 
-		// Prepare the forwarded request.
-		prepareForwardingRequest(req, targetAddr)
+			prepareForwardingRequest(req, targetAddr)
 
-		utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
-		resp, err := http.DefaultClient.Do(req)
+			utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
 
-		if err != nil {
-			// mark unhealthy
-			// continue?
-			utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
-			rw.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(rw, err)
-			return
+			// FIXME: Marking 1/2 of healthy endpoints kills the last one as well?!
+			resp, forwardErr = http.DefaultClient.Do(req)
+			if forwardErr != nil {
+				fmt.Printf("forwardErr: %s\n", err)
+				endpoint.markUnhealthy()
+				utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
+				continue
+			}
 		}
 
 		// Copy all key-value pairs from the backend's

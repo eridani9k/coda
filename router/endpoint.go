@@ -1,5 +1,9 @@
 package router
 
+import (
+	"fmt"
+)
+
 // endpoint is an address definition
 type endpoint struct {
 	addr    string
@@ -15,5 +19,6 @@ func (e *endpoint) isHealthy() bool {
 }
 
 func (e *endpoint) markUnhealthy() {
+	fmt.Printf("Endpoint %s marked unhealthy, and will not receive requests.\n", e.addr)
 	e.healthy = false
 }
