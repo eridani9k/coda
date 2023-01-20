@@ -20,7 +20,7 @@ func InitializeRouter(port uint) {
 	balancer := NewBalancer([]string{
 		"http://127.0.0.1:8081",
 		"http://127.0.0.1:8082",
-		//		"http://127.0.0.1:8083",
+		"http://127.0.0.1:8083",
 	})
 
 	proxy := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -45,14 +45,24 @@ func InitializeRouter(port uint) {
 
 			utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
 
-			// FIXME: Marking 1/2 of healthy endpoints kills the last one as well?!
-			resp, forwardErr = http.DefaultClient.Do(req)
+			// FIXME: Killing endpoints often takes down others as well.
+			// Things tried:
+			//   - defer resp.Body.Close()
+			//   - req.Close = true
+			//   - using a custom http.Client()
+			var httpClient = &http.Client{
+				Transport: &http.Transport{},
+			}
+
+			// resp, forwardErr = http.DefaultClient.Do(req)
+			resp, forwardErr = httpClient.Do(req)
 			if forwardErr != nil {
 				fmt.Printf("forwardErr: %s\n", err)
 				endpoint.markUnhealthy()
 				utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
 				continue
 			}
+			// defer resp.Body.Close()
 		}
 
 		// Copy all key-value pairs from the backend's
@@ -84,7 +94,10 @@ func prepareForwardingRequest(req *http.Request, targetAddr string) {
 	req.RequestURI = ""
 
 	// Set X-Forwarded-For so the backend server receives the client's address.
-	// TODO: verify this.
 	originIPAddr, _, _ := net.SplitHostPort(req.RemoteAddr)
 	req.Header.Set("X-Forwarded-For", originIPAddr)
+
+	// Supposedly resolves the issue of connections getting EOF'd when
+	// they are terminated (CTRL-c) from the command line.
+	// req.Close = true
 }
