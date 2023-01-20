@@ -24,7 +24,7 @@ func InitializeRouter(port uint) {
 	//   5. edit headers before sending response back to client?!`
 
 	// TODO: read from config file!
-	balancer := NewRouter([]string{
+	balancer := NewBalancer([]string{
 		"http://127.0.0.1:8081",
 		"http://127.0.0.1:8082",
 	})

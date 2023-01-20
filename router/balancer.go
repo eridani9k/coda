@@ -9,7 +9,7 @@ var (
 	ErrNoEndpointsRegistered = errors.New("no endpoints registered")
 )
 
-type Router struct {
+type Balancer struct {
 	endpoints []*endpoint
 	curr      int
 	next      int
@@ -18,9 +18,9 @@ type Router struct {
 	mu sync.Mutex
 }
 
-func NewRouter(addrs []string) *Router {
+func NewBalancer(addrs []string) *Balancer {
 	if len(addrs) == 0 {
-		return &Router{}
+		return &Balancer{}
 	}
 
 	curr := 0
@@ -34,7 +34,7 @@ func NewRouter(addrs []string) *Router {
 		}
 	}
 
-	return &Router{
+	return &Balancer{
 		endpoints: endpoints,
 		curr:      curr,
 		next:      next,
@@ -42,35 +42,35 @@ func NewRouter(addrs []string) *Router {
 	}
 }
 
-// Advance returns the endpoint at r.curr and advances
-// both r.curr and r.next to their next valid positions.
-func (r *Router) Advance() (*endpoint, error) {
-	if r.NoEndpoints() {
+// Advance returns the endpoint at b.curr and advances
+// both b.curr and b.next to their next valid positions.
+func (b *Balancer) Advance() (*endpoint, error) {
+	if b.NoEndpoints() {
 		return nil, ErrNoEndpointsRegistered
 	}
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	b.mu.Lock()
+	defer b.mu.Unlock()
 
-	endpoint := r.getEndpoint()
-	r.curr = r.next
-	r.next = r.seekHealthy(r.next)
+	endpoint := b.getEndpoint()
+	b.curr = b.next
+	b.next = b.seekHealthy(b.next)
 
 	return endpoint, nil
 }
 
-// Peek returns the endpoint at r.next, but does not
-// advance r.curr or r.next.
-func (r *Router) Peek() (*endpoint, error) {
-	if r.NoEndpoints() {
+// Peek returns the endpoint at b.next, but does not
+// advance b.curr or r.next.
+func (b *Balancer) Peek() (*endpoint, error) {
+	if b.NoEndpoints() {
 		return nil, ErrNoEndpointsRegistered
 	}
 
-	return r.endpoints[r.next], nil
+	return b.endpoints[b.next], nil
 }
 
-func (r *Router) getEndpoint() *endpoint {
-	return r.endpoints[r.curr]
+func (b *Balancer) getEndpoint() *endpoint {
+	return b.endpoints[b.curr]
 }
 
 // seekHealthy returns the index of the next healthy
@@ -79,13 +79,13 @@ func (r *Router) getEndpoint() *endpoint {
 // and returns index if:
 //   - r.endpoints only contain the endpoint at index,
 //   - all other endpoints in r.endpoints are unhealthy.
-func (r *Router) seekHealthy(index int) int {
-	k := r.step(index)
+func (b *Balancer) seekHealthy(index int) int {
+	k := b.step(index)
 	for k != index {
-		if r.endpoints[k].healthy {
+		if b.endpoints[k].healthy {
 			return k
 		}
-		k = r.step(k)
+		k = b.step(k)
 	}
 
 	// All other endpoints are unhealthy or index is the only element.
@@ -95,8 +95,8 @@ func (r *Router) seekHealthy(index int) int {
 // step returns the index of the next element.
 // If index has reached the end of the collection,
 // loop back to 0.
-func (r *Router) step(index int) int {
-	return step(len(r.endpoints)-1, index)
+func (b *Balancer) step(index int) int {
+	return step(len(b.endpoints)-1, index)
 }
 
 // step returns the next integer after index.
@@ -109,23 +109,23 @@ func step(max int, index int) int {
 	return index + 1
 }
 
-// Register adds an endpoint instance to r.endpoints.
+// Register adds an endpoint instance to b.endpoints.
 // New endpoints are always marked by default as healthy.
-func (r *Router) Register(addr string) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (b *Balancer) Register(addr string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 
-	r.endpoints = append(r.endpoints, &endpoint{
+	b.endpoints = append(b.endpoints, &endpoint{
 		addr:    addr,
 		healthy: true,
 	})
-	r.size += 1
+	b.size += 1
 }
 
-func (r *Router) Size() int {
-	return r.size
+func (b *Balancer) Size() int {
+	return b.size
 }
 
-func (r *Router) NoEndpoints() bool {
-	return r.size == 0
+func (b *Balancer) NoEndpoints() bool {
+	return b.size == 0
 }

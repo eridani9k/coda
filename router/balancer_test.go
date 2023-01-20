@@ -7,28 +7,28 @@ import (
 
 // Refer to test_vars.go for structures used in this file.
 
-func TestNewRouter(t *testing.T) {
+func TestNewBalancer(t *testing.T) {
 	tests := map[string]struct {
 		addrs []string
-		want  *Router
+		want  *Balancer
 	}{
 		"empty_addr": {
 			addrs: []string{},
-			want:  emptyRouter,
+			want:  emptyBalancer,
 		},
 		"single_addr": {
 			addrs: []string{":8080"},
-			want:  routerWithSingleEndpoint,
+			want:  balancerWithSingleEndpoint,
 		},
 		"multiple_addrs": {
 			addrs: []string{":8080", ":8081", ":8082", ":8083"},
-			want:  routerWithMultipleEndpoints,
+			want:  balancerWithMultipleEndpoints,
 		},
 	}
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := NewRouter(ts.addrs)
+			got := NewBalancer(ts.addrs)
 			if !reflect.DeepEqual(got, ts.want) {
 				t.Errorf("got: %+v, want: %+v", got, ts.want)
 			}
@@ -38,21 +38,21 @@ func TestNewRouter(t *testing.T) {
 
 func TestAdvance(t *testing.T) {
 	tests := map[string]struct {
-		router   *Router
+		balancer *Balancer
 		endpoint *endpoint
 		newCurr  int
 		newNext  int
 		err      error
 	}{
 		"empty": {
-			router:   emptyRouter,
+			balancer: emptyBalancer,
 			endpoint: nil,
 			newCurr:  0,
 			newNext:  0,
 			err:      ErrNoEndpointsRegistered,
 		},
 		"single_endpoint": {
-			router: routerWithSingleEndpoint,
+			balancer: balancerWithSingleEndpoint,
 			endpoint: &endpoint{
 				addr:    ":8080",
 				healthy: true,
@@ -62,7 +62,7 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"multiple_endpoints": {
-			router: routerWithMultipleEndpoints,
+			balancer: balancerWithMultipleEndpoints,
 			endpoint: &endpoint{
 				addr:    ":8080",
 				healthy: true,
@@ -72,7 +72,7 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"double_endpoints_01": {
-			router: routerNextV1,
+			balancer: balancerNextV1,
 			endpoint: &endpoint{
 				addr:    ":8081",
 				healthy: true,
@@ -82,7 +82,7 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"double_endpoints_02": {
-			router: routerNextV2,
+			balancer: balancerNextV2,
 			endpoint: &endpoint{
 				addr:    ":8080",
 				healthy: true,
@@ -92,7 +92,7 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"single_healthy_endpoint": {
-			router: routerNextV3,
+			balancer: balancerNextV3,
 			endpoint: &endpoint{
 				addr:    ":8083",
 				healthy: true,
@@ -102,7 +102,7 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"mixed_endpoints_01": {
-			router: routerNextV4,
+			balancer: balancerNextV4,
 			endpoint: &endpoint{
 				addr:    ":8083",
 				healthy: true,
@@ -112,7 +112,7 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"mixed_endpoints_05": {
-			router: routerNextV5,
+			balancer: balancerNextV5,
 			endpoint: &endpoint{
 				addr:    ":8085",
 				healthy: true,
@@ -125,9 +125,9 @@ func TestAdvance(t *testing.T) {
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			endpoint, err := ts.router.Advance()
-			if err != ts.err || !reflect.DeepEqual(endpoint, ts.endpoint) || ts.router.curr != ts.newCurr || ts.router.next != ts.newNext {
-				t.Errorf("\nendpoint - got: %+v, want: %+v\ncurr - got: %+v, want: %+v\nnext - got: %+v, want: %+v", endpoint, ts.endpoint, ts.router.curr, ts.newCurr, ts.router.next, ts.newNext)
+			endpoint, err := ts.balancer.Advance()
+			if err != ts.err || !reflect.DeepEqual(endpoint, ts.endpoint) || ts.balancer.curr != ts.newCurr || ts.balancer.next != ts.newNext {
+				t.Errorf("\nendpoint - got: %+v, want: %+v\ncurr - got: %+v, want: %+v\nnext - got: %+v, want: %+v", endpoint, ts.endpoint, ts.balancer.curr, ts.newCurr, ts.balancer.next, ts.newNext)
 			}
 		})
 	}
@@ -135,50 +135,50 @@ func TestAdvance(t *testing.T) {
 
 func TestSeekHealthy(t *testing.T) {
 	tests := map[string]struct {
-		router *Router
-		index  int
-		want   int
+		balancer *Balancer
+		index    int
+		want     int
 	}{
 		"multiple_unhealthy_01": {
-			router: routerWithUnhealthyEndpointsV1,
-			index:  0,
-			want:   2,
+			balancer: balancerWithUnhealthyEndpointsV1,
+			index:    0,
+			want:     2,
 		},
 		"multiple_unhealthy_02": {
-			router: routerWithUnhealthyEndpointsV1,
-			index:  2,
-			want:   5,
+			balancer: balancerWithUnhealthyEndpointsV1,
+			index:    2,
+			want:     5,
 		},
 		"multiple_unhealthy_03": {
-			router: routerWithUnhealthyEndpointsV1,
-			index:  5,
-			want:   0,
+			balancer: balancerWithUnhealthyEndpointsV1,
+			index:    5,
+			want:     0,
 		},
 		"multiple_unhealthy_04": {
-			router: routerWithUnhealthyEndpointsV2,
-			index:  2,
-			want:   4,
+			balancer: balancerWithUnhealthyEndpointsV2,
+			index:    2,
+			want:     4,
 		},
 		"multiple_unhealthy_05": {
-			router: routerWithUnhealthyEndpointsV2,
-			index:  4,
-			want:   2,
+			balancer: balancerWithUnhealthyEndpointsV2,
+			index:    4,
+			want:     2,
 		},
 		"single_healthy_01": {
-			router: routerWithSingleHealthyEndpoint,
-			index:  3,
-			want:   3,
+			balancer: balancerWithSingleHealthyEndpoint,
+			index:    3,
+			want:     3,
 		},
 		"single_healthy_02": {
-			router: routerWithSingleEndpoint,
-			index:  0,
-			want:   0,
+			balancer: balancerWithSingleEndpoint,
+			index:    0,
+			want:     0,
 		},
 	}
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := ts.router.seekHealthy(ts.index)
+			got := ts.balancer.seekHealthy(ts.index)
 			if got != ts.want {
 				t.Errorf("got: %+v, want: %+v", got, ts.want)
 			}
@@ -188,30 +188,30 @@ func TestSeekHealthy(t *testing.T) {
 
 func TestStep(t *testing.T) {
 	tests := map[string]struct {
-		router *Router
-		index  int
-		want   int
+		balancer *Balancer
+		index    int
+		want     int
 	}{
 		"step_single_element": {
-			router: routerWithSingleEndpoint,
-			index:  0,
-			want:   0,
+			balancer: balancerWithSingleEndpoint,
+			index:    0,
+			want:     0,
 		},
 		"step_nonlooping": {
-			router: routerWithMultipleEndpoints,
-			index:  1,
-			want:   2,
+			balancer: balancerWithMultipleEndpoints,
+			index:    1,
+			want:     2,
 		},
 		"step_looping": {
-			router: routerWithMultipleEndpoints,
-			index:  3,
-			want:   0,
+			balancer: balancerWithMultipleEndpoints,
+			index:    3,
+			want:     0,
 		},
 	}
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			got := ts.router.step(ts.index)
+			got := ts.balancer.step(ts.index)
 			if got != ts.want {
 				t.Errorf("got: %+v, want: %+v", got, ts.want)
 			}

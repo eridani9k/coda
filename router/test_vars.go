@@ -1,11 +1,11 @@
 package router
 
-// This file contains variables used in router_test.go.
+// This file contains variables used in balancer_test.go.
 
 var (
-	emptyRouter = &Router{}
+	emptyBalancer = &Balancer{}
 
-	routerWithSingleEndpoint = &Router{
+	balancerWithSingleEndpoint = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 		},
@@ -14,7 +14,7 @@ var (
 		size: 1,
 	}
 
-	routerWithMultipleEndpoints = &Router{
+	balancerWithMultipleEndpoints = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
@@ -26,7 +26,7 @@ var (
 		size: 4,
 	}
 
-	routerWithUnhealthyEndpointsV1 = &Router{
+	balancerWithUnhealthyEndpointsV1 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: false},
@@ -40,7 +40,7 @@ var (
 		size: 6,
 	}
 
-	routerWithUnhealthyEndpointsV2 = &Router{
+	balancerWithUnhealthyEndpointsV2 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
@@ -54,7 +54,7 @@ var (
 		size: 6,
 	}
 
-	routerWithSingleHealthyEndpoint = &Router{
+	balancerWithSingleHealthyEndpoint = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
@@ -68,7 +68,7 @@ var (
 		size: 6,
 	}
 
-	routerNextV1 = &Router{
+	balancerNextV1 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
@@ -78,7 +78,7 @@ var (
 		size: 2,
 	}
 
-	routerNextV2 = &Router{
+	balancerNextV2 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
@@ -88,7 +88,7 @@ var (
 		size: 2,
 	}
 
-	routerNextV3 = &Router{
+	balancerNextV3 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
@@ -102,7 +102,7 @@ var (
 		size: 6,
 	}
 
-	routerNextV4 = &Router{
+	balancerNextV4 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: true},
@@ -116,7 +116,7 @@ var (
 		size: 6,
 	}
 
-	routerNextV5 = &Router{
+	balancerNextV5 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8082", healthy: false},
