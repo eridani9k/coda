@@ -36,7 +36,7 @@ func TestNewRouter(t *testing.T) {
 	}
 }
 
-func TestNextEndpoint(t *testing.T) {
+func TestAdvance(t *testing.T) {
 	tests := map[string]struct {
 		router   *Router
 		endpoint *endpoint
@@ -125,7 +125,7 @@ func TestNextEndpoint(t *testing.T) {
 
 	for name, ts := range tests {
 		t.Run(name, func(t *testing.T) {
-			endpoint, err := ts.router.NextEndpoint()
+			endpoint, err := ts.router.Advance()
 			if err != ts.err || !reflect.DeepEqual(endpoint, ts.endpoint) || ts.router.curr != ts.newCurr || ts.router.next != ts.newNext {
 				t.Errorf("\nendpoint - got: %+v, want: %+v\ncurr - got: %+v, want: %+v\nnext - got: %+v, want: %+v", endpoint, ts.endpoint, ts.router.curr, ts.newCurr, ts.router.next, ts.newNext)
 			}

@@ -7,7 +7,8 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"time"
+
+	"coda/utils"
 )
 
 func HandleRequests(port uint) {
@@ -24,13 +25,13 @@ func HandleRequests(port uint) {
 		Handler: mux,
 	}
 
-	formatMessage(fmt.Sprintf("Starting server on port %d...", port))
+	utils.FormatMessage(fmt.Sprintf("Starting server on port %d...", port))
 	err := server.ListenAndServe()
 	if err != nil {
 		if errors.Is(err, http.ErrServerClosed) {
-			formatMessage("Error - server closed.")
+			utils.FormatMessage("Error - server closed.")
 		} else {
-			formatMessage(fmt.Sprintf("Error - %s", err))
+			utils.FormatMessage(fmt.Sprintf("Error - %s", err))
 		}
 		os.Exit(1)
 	}
@@ -43,7 +44,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("API does not support this method."))
-		formatMessage("API does not support this method.")
+		utils.FormatMessage("API does not support this method.")
 		return
 	}
 
@@ -55,13 +56,13 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	if !json.Valid([]byte(body)) {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Invalid JSON."))
-		formatMessage("Invalid JSON.")
+		utils.FormatMessage("Invalid JSON.")
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
-	formatMessage(fmt.Sprintf("response: %s", string(body)))
+	utils.FormatMessage(fmt.Sprintf("response: %s", string(body)))
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
@@ -69,10 +70,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the homepage!")
 }
 
-func formatMessage(message string) {
-	fmt.Printf("[ %s ] %s\n", time.Now().Format(time.RFC3339), message)
-}
-
 func showEndpoint(endpoint string) {
-	formatMessage(fmt.Sprintf("Endpoint hit: %s", endpoint))
+	utils.FormatMessage(fmt.Sprintf("Endpoint hit: %s", endpoint))
 }

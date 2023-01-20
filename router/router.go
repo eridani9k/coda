@@ -39,9 +39,9 @@ func NewRouter(addrs []string) *Router {
 	}
 }
 
-// NextEndpoint returns the endpoint at r.curr and advances
+// Advance returns the endpoint at r.curr and advances
 // both r.curr and r.next to their next valid positions.
-func (r *Router) NextEndpoint() (*endpoint, error) {
+func (r *Router) Advance() (*endpoint, error) {
 	if r.NoEndpoints() {
 		return nil, ErrNoEndpointsRegistered
 	}
@@ -51,6 +51,11 @@ func (r *Router) NextEndpoint() (*endpoint, error) {
 	r.next = r.seekHealthy(r.next)
 
 	return endpoint, nil
+}
+
+// Peek returns the endpoint at r.next, but does not advance the pointers.
+func (r *Router) Peek() *endpoint {
+	return r.endpoints[r.next]
 }
 
 func (r *Router) getEndpoint() *endpoint {
