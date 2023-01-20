@@ -79,6 +79,9 @@ func (b *Balancer) getEndpoint() *endpoint {
 // and returns index if:
 //   - r.endpoints only contain the endpoint at index,
 //   - all other endpoints in r.endpoints are unhealthy.
+//
+// TODO: seekHealthy is missing a NoValidEndpoint signal.
+// TODO: return -1 if there is no healthy endpoint found?
 func (b *Balancer) seekHealthy(index int) int {
 	k := b.step(index)
 	for k != index {

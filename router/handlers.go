@@ -27,34 +27,36 @@ func InitializeRouter(port uint) {
 	balancer := NewBalancer([]string{
 		"http://127.0.0.1:8081",
 		"http://127.0.0.1:8082",
+		"http://127.0.0.1:8083",
 	})
 
 	proxy := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+
+		/*
+			var forwardErr error
+			var resp *http.Response
+			firstRun := true // sentinel bool to ensure the following loop runs at least once.
+		*/
+
 		endpoint, err := balancer.Advance()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		backendAddr := endpoint.getAddress()
-		url, err := url.Parse(backendAddr)
-		if err != nil {
-			log.Fatal(err)
-		}
+		targetAddr := endpoint.getAddress()
 
-		req.Host = url.Host
-		req.URL.Host = url.Host
-		req.URL.Scheme = url.Scheme
-		req.RequestURI = ""
+		// Let's assume it only retries on the next endpoint.
+		// When do we define a request to have failed completely in this scenario?
 
-		// Set X-Forwarded-For so the backend server receives the client's address.
-		// TODO: verify this
-		// This returns server IP. Port is ignored.
-		originIPAddr, _, _ := net.SplitHostPort(req.RemoteAddr)
-		req.Header.Set("X-Forwarded-For", originIPAddr)
+		// Prepare the forwarded request.
+		prepareForwardingRequest(req, targetAddr)
 
-		utils.FormatMessage(fmt.Sprintf("Routing to %s...", backendAddr))
+		utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
 		resp, err := http.DefaultClient.Do(req)
+
+		// TODO: if the endpoint is failing, mark it as unhealthy.
 		if err != nil {
+			utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(rw, err)
 			return
@@ -75,4 +77,21 @@ func InitializeRouter(port uint) {
 
 	utils.FormatMessage(fmt.Sprintf("Starting router on port %d...", port))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), proxy)
+}
+
+func prepareForwardingRequest(req *http.Request, targetAddr string) {
+	url, err := url.Parse(targetAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	req.Host = url.Host
+	req.URL.Host = url.Host
+	req.URL.Scheme = url.Scheme
+	req.RequestURI = ""
+
+	// Set X-Forwarded-For so the backend server receives the client's address.
+	// TODO: verify this.
+	originIPAddr, _, _ := net.SplitHostPort(req.RemoteAddr)
+	req.Header.Set("X-Forwarded-For", originIPAddr)
 }
