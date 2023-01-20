@@ -7,24 +7,22 @@ import (
 
 var (
 	ErrNoEndpointsRegistered = errors.New("no endpoints registered")
+	ErrNoValidEndpoints      = errors.New("no valid endpoints")
 )
 
 type Balancer struct {
 	endpoints []*endpoint
-	curr      int
-	next      int
+	curr      int // -1 indicates no valid endpoints.
 	size      int
 
 	mu sync.Mutex
 }
 
 func NewBalancer(addrs []string) *Balancer {
+	var curr int
 	if len(addrs) == 0 {
-		return &Balancer{}
+		curr = -1
 	}
-
-	curr := 0
-	next := step(len(addrs)-1, curr)
 
 	endpoints := make([]*endpoint, len(addrs))
 	for i, addr := range addrs {
@@ -37,51 +35,42 @@ func NewBalancer(addrs []string) *Balancer {
 	return &Balancer{
 		endpoints: endpoints,
 		curr:      curr,
-		next:      next,
 		size:      len(addrs),
 	}
 }
 
-// Advance returns the endpoint at b.curr and advances
-// both b.curr and b.next to their next valid positions.
 func (b *Balancer) Advance() (*endpoint, error) {
-	if b.NoEndpoints() {
-		return nil, ErrNoEndpointsRegistered
-	}
-
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	endpoint := b.getEndpoint()
-	b.curr = b.next
-	b.next = b.seekHealthy(b.next)
-
-	return endpoint, nil
-}
-
-// Peek returns the endpoint at b.next, but does not
-// advance b.curr or r.next.
-func (b *Balancer) Peek() (*endpoint, error) {
-	if b.NoEndpoints() {
-		return nil, ErrNoEndpointsRegistered
+	err := b.nextHealthy()
+	if err != nil {
+		return nil, err
 	}
 
-	return b.endpoints[b.next], nil
+	return b.getEndpoint(), nil
 }
 
 func (b *Balancer) getEndpoint() *endpoint {
 	return b.endpoints[b.curr]
 }
 
+// NextHealthy moves b.curr to the next healthy endpoint.
+// If there are no valid endpoints, sets b.curr to -1 and returns an error.
+func (b *Balancer) nextHealthy() error {
+	b.curr = b.seekHealthy(b.curr)
+	if b.curr == -1 {
+		return ErrNoValidEndpoints
+	}
+
+	return nil
+}
+
 // seekHealthy returns the index of the next healthy
 // endpoint starting from the endpoint after index.
-// seekHealthy assumes the endpoint at index is healthy,
-// and returns index if:
-//   - r.endpoints only contain the endpoint at index,
-//   - all other endpoints in r.endpoints are unhealthy.
-//
-// TODO: seekHealthy is missing a NoValidEndpoint signal.
-// TODO: return -1 if there is no healthy endpoint found?
+// seekHealthy returns -1 if there is no healthy endpoint found.
+// seekHealthy will check for health at most len(endpoints) times.
+// TODO: rewrite this description.
 func (b *Balancer) seekHealthy(index int) int {
 	k := b.step(index)
 	for k != index {
@@ -91,7 +80,12 @@ func (b *Balancer) seekHealthy(index int) int {
 		k = b.step(k)
 	}
 
-	// All other endpoints are unhealthy or index is the only element.
+	// k has looped back to index.
+	// If the endpoint at index is unhealthy, return -1.
+	if !b.endpoints[index].healthy {
+		return -1
+	}
+
 	return index
 }
 
@@ -132,3 +126,15 @@ func (b *Balancer) Size() int {
 func (b *Balancer) NoEndpoints() bool {
 	return b.size == 0
 }
+
+// Peek returns the endpoint at b.next, but does not
+// advance b.curr or r.next.
+/*
+func (b *Balancer) Peek() (*endpoint, error) {
+	if b.NoEndpoints() {
+		return nil, ErrNoEndpointsRegistered
+	}
+
+	return b.endpoints[b.next], nil
+}
+*/

@@ -3,14 +3,17 @@ package router
 // This file contains variables used in balancer_test.go.
 
 var (
-	emptyBalancer = &Balancer{}
+	emptyBalancer = &Balancer{
+		endpoints: make([]*endpoint, 0),
+		curr:      -1,
+		size:      0,
+	}
 
 	balancerWithSingleEndpoint = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 		},
 		curr: 0,
-		next: 0,
 		size: 1,
 	}
 
@@ -22,7 +25,6 @@ var (
 			{addr: ":8083", healthy: true},
 		},
 		curr: 0,
-		next: 1,
 		size: 4,
 	}
 
@@ -36,7 +38,6 @@ var (
 			{addr: ":8085", healthy: true},
 		},
 		curr: 0,
-		next: 1,
 		size: 6,
 	}
 
@@ -50,7 +51,6 @@ var (
 			{addr: ":8085", healthy: false},
 		},
 		curr: 0,
-		next: 1,
 		size: 6,
 	}
 
@@ -64,7 +64,19 @@ var (
 			{addr: ":8085", healthy: false},
 		},
 		curr: 0,
-		next: 1,
+		size: 6,
+	}
+
+	balancerAllUnhealthy = &Balancer{
+		endpoints: []*endpoint{
+			{addr: ":8080", healthy: false},
+			{addr: ":8081", healthy: false},
+			{addr: ":8082", healthy: false},
+			{addr: ":8083", healthy: false},
+			{addr: ":8084", healthy: false},
+			{addr: ":8085", healthy: false},
+		},
+		curr: 0,
 		size: 6,
 	}
 
@@ -74,7 +86,6 @@ var (
 			{addr: ":8081", healthy: true},
 		},
 		curr: 1,
-		next: 0,
 		size: 2,
 	}
 
@@ -84,7 +95,6 @@ var (
 			{addr: ":8081", healthy: true},
 		},
 		curr: 0,
-		next: 1,
 		size: 2,
 	}
 
@@ -98,7 +108,6 @@ var (
 			{addr: ":8085", healthy: false},
 		},
 		curr: 3,
-		next: 3,
 		size: 6,
 	}
 
@@ -112,7 +121,6 @@ var (
 			{addr: ":8085", healthy: false},
 		},
 		curr: 3,
-		next: 1,
 		size: 6,
 	}
 
@@ -124,7 +132,6 @@ var (
 			{addr: ":8085", healthy: true},
 		},
 		curr: 3,
-		next: 0,
 		size: 4,
 	}
 )

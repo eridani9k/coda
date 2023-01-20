@@ -39,14 +39,14 @@ func InitializeRouter(port uint) {
 		*/
 
 		endpoint, err := balancer.Advance()
-		if err != nil {
-			log.Fatal(err)
+		if err != nil { // ErrNoValidEndpoints
+			utils.FormatMessage("No valid endpoints for routing.")
+			rw.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprint(rw, err)
+			return
 		}
 
 		targetAddr := endpoint.getAddress()
-
-		// Let's assume it only retries on the next endpoint.
-		// When do we define a request to have failed completely in this scenario?
 
 		// Prepare the forwarded request.
 		prepareForwardingRequest(req, targetAddr)
@@ -54,8 +54,9 @@ func InitializeRouter(port uint) {
 		utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
 		resp, err := http.DefaultClient.Do(req)
 
-		// TODO: if the endpoint is failing, mark it as unhealthy.
 		if err != nil {
+			// mark unhealthy
+			// continue?
 			utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
 			rw.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(rw, err)
