@@ -19,6 +19,7 @@ func HandleRequests(port uint) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/echo", echo)
+	mux.HandleFunc("/ping", ping)
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
@@ -70,6 +71,13 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 	utils.FormatMessage(fmt.Sprintf("response: %s", string(body)))
+}
+
+// ping allows heartbeart checking. 
+func ping(w http.ResponseWriter, r *http.Request) {
+	showEndpoint("/ping")
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func home(w http.ResponseWriter, r *http.Request) {

@@ -23,7 +23,7 @@ func InitializeRouter(port uint) {
 		"http://127.0.0.1:8083",
 	})
 
-	proxy := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+	proxy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var forwardErr error
 		var resp *http.Response
 		firstRun := true // sentinel bool to ensure the following loop runs at least once.
@@ -34,14 +34,14 @@ func InitializeRouter(port uint) {
 			endpoint, err := balancer.Advance()
 			if err != nil { // ErrNoValidEndpoints
 				utils.FormatMessage("No valid endpoints for routing.")
-				rw.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprint(rw, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprint(w, err)
 				return
 			}
 
 			targetAddr := endpoint.getAddress()
 
-			prepareForwardingRequest(req, targetAddr)
+			prepareForwardingRequest(r, targetAddr)
 
 			utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
 
@@ -50,54 +50,58 @@ func InitializeRouter(port uint) {
 			//   - defer resp.Body.Close()
 			//   - req.Close = true
 			//   - using a custom http.Client()
+
 			var httpClient = &http.Client{
 				Transport: &http.Transport{},
 			}
 
-			// resp, forwardErr = http.DefaultClient.Do(req)
-			resp, forwardErr = httpClient.Do(req)
+			fmt.Printf("req: %+v\n", r)
+
+			resp, forwardErr = httpClient.Do(r)
 			if forwardErr != nil {
-				fmt.Printf("forwardErr: %s\n", err)
-				endpoint.markUnhealthy()
+				fmt.Println("forwardErr: ", err)
 				utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
+				endpoint.markUnhealthy()
 				continue
 			}
 			// defer resp.Body.Close()
 		}
 
+		fmt.Println("Retrieved message from backend")
+
 		// Copy all key-value pairs from the backend's
 		// response Header into the new response.
 		for k, values := range resp.Header {
 			for _, v := range values {
-				rw.Header().Set(k, v)
+				w.Header().Set(k, v)
 			}
 		}
 
 		// Copy backend's StatusCode and Body into the new response.
-		rw.WriteHeader(resp.StatusCode)
-		io.Copy(rw, req.Body)
+		w.WriteHeader(resp.StatusCode)
+		io.Copy(w, r.Body)
 	})
 
 	utils.FormatMessage(fmt.Sprintf("Starting router on port %d...", port))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), proxy)
 }
 
-func prepareForwardingRequest(req *http.Request, targetAddr string) {
+func prepareForwardingRequest(r *http.Request, targetAddr string) {
 	url, err := url.Parse(targetAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	req.Host = url.Host
-	req.URL.Host = url.Host
-	req.URL.Scheme = url.Scheme
-	req.RequestURI = ""
+	r.Host = url.Host
+	r.URL.Host = url.Host
+	r.URL.Scheme = url.Scheme
+	r.RequestURI = ""
 
 	// Set X-Forwarded-For so the backend server receives the client's address.
-	originIPAddr, _, _ := net.SplitHostPort(req.RemoteAddr)
-	req.Header.Set("X-Forwarded-For", originIPAddr)
+	originIPAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
+	r.Header.Set("X-Forwarded-For", originIPAddr)
 
 	// Supposedly resolves the issue of connections getting EOF'd when
 	// they are terminated (CTRL-c) from the command line.
-	// req.Close = true
+	r.Close = true
 }
