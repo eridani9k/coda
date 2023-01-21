@@ -18,5 +18,5 @@ for (( i=0; i<100; i++)); do
 	curl -i 127.0.0.1:8080/echo
 	sleep 2
 
-	printf "Iteration complete..."
+	printf "Iteration complete...\n"
 done

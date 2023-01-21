@@ -55,8 +55,6 @@ func InitializeRouter(port uint) {
 				Transport: &http.Transport{},
 			}
 
-			fmt.Printf("req: %+v\n", r)
-
 			resp, forwardErr = httpClient.Do(r)
 			if forwardErr != nil {
 				fmt.Println("forwardErr: ", err)
@@ -66,8 +64,6 @@ func InitializeRouter(port uint) {
 			}
 			// defer resp.Body.Close()
 		}
-
-		fmt.Println("Retrieved message from backend")
 
 		// Copy all key-value pairs from the backend's
 		// response Header into the new response.

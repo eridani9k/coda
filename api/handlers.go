@@ -58,7 +58,10 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Printf("io.ReadAll error: %s\n", err)
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Unexpected EOF."))
+		utils.FormatMessage("Unexpected EOF.")
+		return
 	}
 
 	if !json.Valid([]byte(body)) {
@@ -73,7 +76,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	utils.FormatMessage(fmt.Sprintf("response: %s", string(body)))
 }
 
-// ping allows heartbeart checking. 
+// ping allows heartbeart checking.
 func ping(w http.ResponseWriter, r *http.Request) {
 	showEndpoint("/ping")
 
