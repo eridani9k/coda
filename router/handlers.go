@@ -11,17 +11,13 @@ import (
 	"coda/utils"
 )
 
-func InitializeRouter(port uint) {
+func InitializeRouter(port uint, endpoints []string) {
 	if port == 0 {
 		port = 8080 // default port
 	}
 
 	// TODO: read from config file!
-	balancer := NewBalancer([]string{
-		"http://127.0.0.1:8081",
-		"http://127.0.0.1:8082",
-		"http://127.0.0.1:8083",
-	})
+	balancer := NewBalancer(endpoints)
 
 	proxy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var forwardErr error

@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
 
 	"coda/api"
@@ -12,6 +16,12 @@ import (
 const (
 	serverTypeRouter = "router"
 	serverTypeAPI    = "api"
+)
+
+var (
+	// Retrieves application root directory.
+	_, b, _, _ = runtime.Caller(0)
+	basepath   = filepath.Dir(b)
 )
 
 func main() {
@@ -41,8 +51,29 @@ func main() {
 	}
 
 	if serverType == serverTypeRouter {
-		router.InitializeRouter(uint(port))
+		endpoints := readEndpointFile("endpoints.cfg")
+		router.InitializeRouter(uint(port), endpoints)
 	} else {
 		api.HandleRequests(uint(port))
 	}
+}
+
+func readEndpointFile(configFile string) []string {
+	file, err := os.Open(filepath.Join(basepath, configFile))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	var endpoints []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		endpoints = append(endpoints, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	return endpoints
 }
