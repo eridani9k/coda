@@ -50,10 +50,8 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// FIXME: EOF issue with request body being closed too early.
-	// Might be fixed after markUnhealthy: Post "http://127.0.0.1:8082/echo": readfrom tcp 127.0.0.1:52729->127.0.0.1:8082: http: invalid Read on closed Body
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("io.ReadAll error: %s\n", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Unexpected EOF."))
 		utils.FormatMessage("Unexpected EOF.")

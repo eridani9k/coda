@@ -23,15 +23,25 @@ const (
 
 var (
 	// Retrieves application root directory.
+	// Used to resolve address configuration file.
 	_, b, _, _ = runtime.Caller(0)
 	basepath   = filepath.Dir(b)
 )
 
+// main() parses and handles two types of command line arguments.
+//
+//	os.Args[1] - Server type. Valid options: router | api
+//	os.Args[2] - Local port. Valid options: 1-65535
+//
+// Examples:
+//  1. To start a router process at port 8080:
+//     $ go run main.go router 8080
+//  2. To start an API backend process at port 8081:
+//     $ go run main.go api 8081
+//
+// In general, a deployment set consists of a single Router
+// fronting 1..N backend processes.
 func main() {
-	// Parse command line arguments.
-	//   os.Args[1] - Server type. Valid options: router | api
-	//   os.Args[2] - Local port. Valid options: 1-65535
-
 	if len(os.Args) != 3 {
 		fmt.Println("Incorrect number of arguments, terminating.")
 		os.Exit(1)
@@ -54,12 +64,17 @@ func main() {
 	}
 
 	if serverType == serverTypeRouter {
-		router.InitializeRouter(uint(port), readAddressFile(addressFile))
+		router.InitRouter(uint(port), readAddressFile(addressFile))
 	} else {
 		api.HandleRequests(uint(port))
 	}
 }
 
+// readAddressFile() reads a line-separated text file containing
+// the addresses of each backend endpoint. Each address needs to
+// be fully qualified (e.g. scheme, domain, port).
+// The text file being read should not contain any other types of
+// information aside from addresses. Comments are not allowed.
 func readAddressFile(configFile string) []string {
 	file, err := os.Open(filepath.Join(basepath, configFile))
 	if err != nil {
