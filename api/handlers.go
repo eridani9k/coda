@@ -12,10 +12,6 @@ import (
 )
 
 func HandleRequests(port uint) {
-	if port == 0 {
-		port = 8080 // default port
-	}
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/echo", echo)

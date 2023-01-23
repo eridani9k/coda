@@ -12,10 +12,6 @@ import (
 )
 
 func InitializeRouter(port uint, addresses []string) {
-	if port == 0 {
-		port = 8080 // default port
-	}
-
 	balancer := NewBalancer(nil)
 	for _, address := range addresses {
 		register(balancer, address)
