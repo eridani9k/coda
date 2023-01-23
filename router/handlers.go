@@ -11,13 +11,15 @@ import (
 	"coda/utils"
 )
 
-func InitializeRouter(port uint, endpoints []string) {
+func InitializeRouter(port uint, addresses []string) {
 	if port == 0 {
 		port = 8080 // default port
 	}
 
-	// TODO: read from config file!
-	balancer := NewBalancer(endpoints)
+	balancer := NewBalancer(nil)
+	for _, address := range addresses {
+		register(balancer, address)
+	}
 
 	proxy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var forwardErr error
@@ -46,8 +48,7 @@ func InitializeRouter(port uint, endpoints []string) {
 			//   - defer resp.Body.Close()
 			//   - req.Close = true
 			//   - using a custom http.Client()
-
-			var httpClient = &http.Client{
+			httpClient := &http.Client{
 				Transport: &http.Transport{},
 			}
 
@@ -58,7 +59,7 @@ func InitializeRouter(port uint, endpoints []string) {
 				endpoint.markUnhealthy()
 				continue
 			}
-			// defer resp.Body.Close()
+			defer resp.Body.Close()
 		}
 
 		// Copy all key-value pairs from the backend's
@@ -78,6 +79,17 @@ func InitializeRouter(port uint, endpoints []string) {
 	http.ListenAndServe(fmt.Sprintf(":%d", port), proxy)
 }
 
+func register(b *Balancer, address string) {
+	_, err := http.Get(fmt.Sprintf("%s/ping", address))
+	if err != nil {
+		utils.FormatMessage(fmt.Sprintf("Ping failed for %s, address will NOT be registered.", address))
+		return
+	}
+
+	b.Add(address)
+	utils.FormatMessage(fmt.Sprintf("Registered address %s successfully!", address))
+}
+
 func prepareForwardingRequest(r *http.Request, targetAddr string) {
 	url, err := url.Parse(targetAddr)
 	if err != nil {
@@ -89,7 +101,7 @@ func prepareForwardingRequest(r *http.Request, targetAddr string) {
 	r.URL.Scheme = url.Scheme
 	r.RequestURI = ""
 
-	// Set X-Forwarded-For so the backend server receives the client's address.
+	// Set X-Forwarded-For so the backend server receives the origin's address.
 	originIPAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
 	r.Header.Set("X-Forwarded-For", originIPAddr)
 

@@ -36,7 +36,6 @@ func TestNewBalancer(t *testing.T) {
 	}
 }
 
-/*
 func TestAdvance(t *testing.T) {
 	tests := map[string]struct {
 		balancer *Balancer
@@ -48,8 +47,8 @@ func TestAdvance(t *testing.T) {
 		"empty": {
 			balancer: emptyBalancer,
 			endpoint: nil,
-			newCurr:  0,
-			err:      ErrNoEndpointsRegistered,
+			newCurr:  -1,
+			err:      ErrNoValidEndpoints,
 		},
 		"single_endpoint": {
 			balancer: balancerWithSingleEndpoint,
@@ -63,32 +62,32 @@ func TestAdvance(t *testing.T) {
 		"multiple_endpoints": {
 			balancer: balancerWithMultipleEndpoints,
 			endpoint: &endpoint{
-				addr:    ":8080",
+				addr:    ":8081",
 				healthy: true,
 			},
 			newCurr: 1,
 			err:     nil,
 		},
 		"double_endpoints_01": {
-			balancer: balancerNextV1,
+			balancer: balancerAdvanceV1,
 			endpoint: &endpoint{
-				addr:    ":8081",
+				addr:    ":8080",
 				healthy: true,
 			},
 			newCurr: 0,
 			err:     nil,
 		},
 		"double_endpoints_02": {
-			balancer: balancerNextV2,
+			balancer: balancerAdvanceV2,
 			endpoint: &endpoint{
-				addr:    ":8080",
+				addr:    ":8081",
 				healthy: true,
 			},
 			newCurr: 1,
 			err:     nil,
 		},
 		"single_healthy_endpoint": {
-			balancer: balancerNextV3,
+			balancer: balancerAdvanceV3,
 			endpoint: &endpoint{
 				addr:    ":8083",
 				healthy: true,
@@ -97,18 +96,18 @@ func TestAdvance(t *testing.T) {
 			err:     nil,
 		},
 		"mixed_endpoints_01": {
-			balancer: balancerNextV4,
+			balancer: balancerAdvanceV4,
 			endpoint: &endpoint{
-				addr:    ":8083",
+				addr:    ":8081",
 				healthy: true,
 			},
 			newCurr: 1,
 			err:     nil,
 		},
 		"mixed_endpoints_05": {
-			balancer: balancerNextV5,
+			balancer: balancerAdvanceV5,
 			endpoint: &endpoint{
-				addr:    ":8085",
+				addr:    ":8080",
 				healthy: true,
 			},
 			newCurr: 0,
@@ -124,7 +123,7 @@ func TestAdvance(t *testing.T) {
 			}
 		})
 	}
-}*/
+}
 
 func TestSeekHealthy(t *testing.T) {
 	tests := map[string]struct {

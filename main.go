@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,6 +17,8 @@ import (
 const (
 	serverTypeRouter = "router"
 	serverTypeAPI    = "api"
+
+	addressFile = "addresses.cfg"
 )
 
 var (
@@ -51,29 +54,36 @@ func main() {
 	}
 
 	if serverType == serverTypeRouter {
-		endpoints := readEndpointFile("endpoints.cfg")
-		router.InitializeRouter(uint(port), endpoints)
+		router.InitializeRouter(uint(port), readAddressFile(addressFile))
 	} else {
 		api.HandleRequests(uint(port))
 	}
 }
 
-func readEndpointFile(configFile string) []string {
+func readAddressFile(configFile string) []string {
 	file, err := os.Open(filepath.Join(basepath, configFile))
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	var endpoints []string
+	var addresses []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		endpoints = append(endpoints, scanner.Text())
+		t := scanner.Text()
+
+		_, err := url.Parse(t)
+		if err != nil {
+			fmt.Printf("Malformed URL: %s. Ignoring entry.\n", t)
+			continue
+		}
+
+		addresses = append(addresses, t)
 	}
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
 
-	return endpoints
+	return addresses
 }

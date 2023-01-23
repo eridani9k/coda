@@ -1,6 +1,11 @@
 #!/bin/bash
 
-for (( i=0; i<100; i++)); do
+for (( i=0; i<999; i++)); do
+
+	printf "Ping test\n"
+	curl -i 127.0.0.1:8081/ping
+	curl -i 127.0.0.1:8082/ping
+	curl -i 127.0.0.1:8083/ping
 
 	printf "POST with valid JSON:\n"
 	curl -i -X POST 127.0.0.1:8080/echo \

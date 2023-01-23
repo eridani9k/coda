@@ -76,7 +76,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	utils.FormatMessage(fmt.Sprintf("response: %s", string(body)))
 }
 
-// ping allows heartbeart checking.
+// ping allows heartbeart checking and returns 200.
 func ping(w http.ResponseWriter, r *http.Request) {
 	showEndpoint("/ping")
 

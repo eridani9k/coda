@@ -80,7 +80,7 @@ var (
 		size: 6,
 	}
 
-	balancerNextV1 = &Balancer{
+	balancerAdvanceV1 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
@@ -89,7 +89,7 @@ var (
 		size: 2,
 	}
 
-	balancerNextV2 = &Balancer{
+	balancerAdvanceV2 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8081", healthy: true},
@@ -98,7 +98,7 @@ var (
 		size: 2,
 	}
 
-	balancerNextV3 = &Balancer{
+	balancerAdvanceV3 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: false},
@@ -111,7 +111,7 @@ var (
 		size: 6,
 	}
 
-	balancerNextV4 = &Balancer{
+	balancerAdvanceV4 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: false},
 			{addr: ":8081", healthy: true},
@@ -124,7 +124,7 @@ var (
 		size: 6,
 	}
 
-	balancerNextV5 = &Balancer{
+	balancerAdvanceV5 = &Balancer{
 		endpoints: []*endpoint{
 			{addr: ":8080", healthy: true},
 			{addr: ":8082", healthy: false},

@@ -6,8 +6,7 @@ import (
 )
 
 var (
-	ErrNoEndpointsRegistered = errors.New("no endpoints registered")
-	ErrNoValidEndpoints      = errors.New("no valid endpoints")
+	ErrNoValidEndpoints = errors.New("no valid endpoints")
 )
 
 type Balancer struct {
@@ -39,7 +38,15 @@ func NewBalancer(addrs []string) *Balancer {
 	}
 }
 
+// Advance is the mechanism for moving b.curr and retrieving an endpoint.
+// Advance seeks for the next healthy endpoint, moves b.curr
+// to that index, and returns the *endpoint at the new index.
+// Advance exits early if there are no valid endpoints (b.curr == -1).
 func (b *Balancer) Advance() (*endpoint, error) {
+	if b.curr == -1 {
+		return nil, ErrNoValidEndpoints
+	}
+
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -55,8 +62,10 @@ func (b *Balancer) getEndpoint() *endpoint {
 	return b.endpoints[b.curr]
 }
 
-// NextHealthy moves b.curr to the next healthy endpoint.
-// If there are no valid endpoints, sets b.curr to -1 and returns an error.
+// nextHealthy moves b.curr to the next healthy endpoint.
+// nextHealthy assumes pre-processed b.curr is >= 0.
+// If there are no valid endpoints found, sets b.curr to -1
+// and returns an error.
 func (b *Balancer) nextHealthy() error {
 	b.curr = b.seekHealthy(b.curr)
 	if b.curr == -1 {
@@ -106,9 +115,9 @@ func step(max int, index int) int {
 	return index + 1
 }
 
-// Register adds an endpoint instance to b.endpoints.
+// Add adds an endpoint instance to b.endpoints.
 // New endpoints are always marked by default as healthy.
-func (b *Balancer) Register(addr string) {
+func (b *Balancer) Add(addr string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -117,24 +126,17 @@ func (b *Balancer) Register(addr string) {
 		healthy: true,
 	})
 	b.size += 1
+
+	// Reset b.curr to 0 if there were no valid endpoints previously.
+	if b.curr == -1 {
+		b.curr = 0
+	}
 }
 
 func (b *Balancer) Size() int {
 	return b.size
 }
 
-func (b *Balancer) NoEndpoints() bool {
-	return b.size == 0
+func (b *Balancer) Curr() int {
+	return b.curr
 }
-
-// Peek returns the endpoint at b.next, but does not
-// advance b.curr or r.next.
-/*
-func (b *Balancer) Peek() (*endpoint, error) {
-	if b.NoEndpoints() {
-		return nil, ErrNoEndpointsRegistered
-	}
-
-	return b.endpoints[b.next], nil
-}
-*/
