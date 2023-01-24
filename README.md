@@ -23,7 +23,7 @@ http://127.0.0.1:8083
 
 During `Router` initialization, each address is sent a `/ping` request to verify endpoint health. Only healthy endpoints will be added to `Router`'s load balancing algorithm.
 
-*NOTE*: This implementation currently does not support adding backend endpoints after `Router` has completed initialization. Therefore, only the addresses in `addresses.cfg` are considered during load balancing.
+**NOTE**: This implementation currently does not support adding backend endpoints after `Router` has completed initialization. Therefore, only the addresses in `addresses.cfg` are considered during load balancing.
 
 ### Running the Application
 
