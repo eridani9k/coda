@@ -76,10 +76,11 @@ $ go run main.go router 8080
 */
 ```
 
-Run `curl_test.sh <ROUTER_PORT>` to start sending requests to the `Router` process.
+Run `curl.sh <ROUTER_PORT>` to start sending requests to the `Router` process.
+`curl.sh` runs 100 iterations of `curl POST ...` to simulate incoming requests.
 
 ```bash
-$ ./curl_test.sh 8080
+$ ./curl.sh 8080
 ```
 
 The `Router` should now print routing destinations in a round-robin basis:
