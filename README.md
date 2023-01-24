@@ -3,10 +3,10 @@
 ## Table of Contents
 - [Introduction](#introduction)
 - [Usage](#usage)
-    - [addresses.cfg](#addresses.cfg)
+    - [Address Registration](#address-registration)
     - [Running the Application](#running-the-application)
     - [Deployment Example](#deployment-example)
-- [Unit Tests & Coverage](#unit-tests-&-coverage)
+- [Unit Tests & Coverage](#unit-tests--coverage)
 
 ## Introduction
 
@@ -18,7 +18,7 @@ _**This is sample code. DO NOT deploy this in a production environment!**_
 
 ## Usage
 
-### addresses.cfg
+### Address Registration
 
 `addresses.cfg` is a newline-delimited text file containing the list of backend addresses to be registered during the initialization of the `Router`. This file allows no other information; comments are not allowed.
 
