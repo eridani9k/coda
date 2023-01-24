@@ -18,8 +18,8 @@ import (
 func InitRouter(port uint, addresses []string) {
 	balancer := initBalancer(addresses)
 
-	// Set health check interval to 5 seconds.
-	initHealthChecks(balancer, 5)
+	// Set health check interval to 2 seconds.
+	initHealthChecks(balancer, 2)
 
 	proxy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var forwardErr error
@@ -33,7 +33,7 @@ func InitRouter(port uint, addresses []string) {
 
 			endpoint, err := balancer.Advance()
 			if err != nil { // ErrNoValidEndpoints
-				utils.FormatMessage("No valid endpoints for routing.")
+				utils.TimestampMsg("No valid endpoints for routing.")
 				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprint(w, err)
 				return
@@ -43,7 +43,7 @@ func InitRouter(port uint, addresses []string) {
 
 			prepareForwardingRequest(r, targetAddr)
 
-			utils.FormatMessage(fmt.Sprintf("Routing to %s...", targetAddr))
+			utils.TimestampMsg(fmt.Sprintf("Routing to %s...", targetAddr))
 
 			// FIXME: Killing endpoints often takes down others as well.
 			httpClient := &http.Client{
@@ -52,9 +52,9 @@ func InitRouter(port uint, addresses []string) {
 
 			resp, forwardErr = httpClient.Do(r)
 			if forwardErr != nil {
-				utils.FormatMessage(fmt.Sprintf("Error routing to %s...", targetAddr))
+				utils.TimestampMsg(fmt.Sprintf("Error routing to %s...", targetAddr))
 				endpoint.setUnhealthy()
-				utils.FormatMessage(fmt.Sprintf("Endpoint %s marked unhealthy, and will not receive requests.", endpoint.addr))
+				utils.TimestampMsg(fmt.Sprintf("Endpoint %s marked unhealthy, and will not receive requests.", endpoint.addr))
 				continue
 			}
 			defer resp.Body.Close()
@@ -73,7 +73,7 @@ func InitRouter(port uint, addresses []string) {
 		io.Copy(w, r.Body)
 	})
 
-	utils.FormatMessage(fmt.Sprintf("Starting router on port %d...", port))
+	utils.TimestampMsg(fmt.Sprintf("Starting router on port %d...", port))
 	http.ListenAndServe(fmt.Sprintf(":%d", port), proxy)
 }
 
@@ -93,12 +93,12 @@ func initBalancer(addresses []string) *Balancer {
 func register(b *Balancer, address string) {
 	err := ping(address)
 	if err != nil {
-		utils.FormatMessage(fmt.Sprintf("Ping failed for %s, address will NOT be registered.", address))
+		utils.TimestampMsg(fmt.Sprintf("Ping failed for %s, address will NOT be registered.", address))
 		return
 	}
 
 	b.Add(address)
-	utils.FormatMessage(fmt.Sprintf("Registered address %s successfully!", address))
+	utils.TimestampMsg(fmt.Sprintf("Registered address %s successfully!", address))
 }
 
 // initHealthChecks() creates an asynchronous ticker with an
@@ -131,14 +131,15 @@ func healthCheck(balancer *Balancer) {
 
 		err := ping(address)
 		if err != nil {
-			utils.FormatMessage(fmt.Sprintf("Health check failed for %s.", address))
+			utils.TimestampMsg(fmt.Sprintf("Health check failed for %s.", address))
 			endpoint.setUnhealthy()
 			continue
 		}
 
 		// Notify if endpoint is recovering from an unhealthy state.
 		if !endpoint.isHealthy() {
-			utils.FormatMessage(fmt.Sprintf("%s recovering from unhealthy state.", address))
+			utils.TimestampMsg(fmt.Sprintf("%s recovering from unhealthy state.", address))
+			balancer.ResetCurr()
 		}
 
 		endpoint.setHealthy()

@@ -38,10 +38,10 @@ func NewBalancer(addrs []string) *Balancer {
 	}
 }
 
-// Advance is the mechanism for moving b.curr and retrieving an endpoint.
-// Advance seeks for the next healthy endpoint, moves b.curr
+// Advance() is the mechanism for moving b.curr and retrieving an endpoint.
+// Advance() seeks for the next healthy endpoint, moves b.curr
 // to that index, and returns the *endpoint at the new index.
-// Advance exits early if there are no valid endpoints (b.curr == -1).
+// Advance() exits early if there are no valid endpoints (b.curr == -1).
 func (b *Balancer) Advance() (*endpoint, error) {
 	if b.curr == -1 {
 		return nil, ErrNoValidEndpoints
@@ -62,8 +62,8 @@ func (b *Balancer) getEndpoint() *endpoint {
 	return b.endpoints[b.curr]
 }
 
-// nextHealthy moves b.curr to the next healthy endpoint.
-// nextHealthy assumes pre-processed b.curr is >= 0.
+// nextHealthy() moves b.curr to the next healthy endpoint.
+// nextHealthy() assumes pre-processed b.curr is >= 0.
 // If there are no valid endpoints found, sets b.curr to -1
 // and returns an error.
 func (b *Balancer) nextHealthy() error {
@@ -75,10 +75,10 @@ func (b *Balancer) nextHealthy() error {
 	return nil
 }
 
-// seekHealthy returns the index of the next healthy
+// seekHealthy() returns the index of the next healthy
 // endpoint starting from the endpoint after index.
-// seekHealthy returns -1 if there is no healthy endpoint found.
-// seekHealthy will check for health at most len(endpoints) times.
+// seekHealthy() returns -1 if there is no healthy endpoint found.
+// seekHealthy() will check for health at most len(endpoints) times.
 // TODO: rewrite this description.
 func (b *Balancer) seekHealthy(index int) int {
 	k := b.step(index)
@@ -98,15 +98,17 @@ func (b *Balancer) seekHealthy(index int) int {
 	return index
 }
 
-// step returns the index of the next element.
+// step() returns the index of the next element.
 // If index has reached the end of the collection,
 // loop back to 0.
 func (b *Balancer) step(index int) int {
 	return step(len(b.endpoints)-1, index)
 }
 
-// step returns the next integer after index.
-// If index exceeds max, loop back to 0.
+// step() is a helper function that returns the next
+// integer after index. If index exceeds max, loop back to 0.
+// step() is the foundational mechanism for Balancer's
+// round-robin traversal.
 func step(max int, index int) int {
 	if index == max {
 		return 0
@@ -115,7 +117,7 @@ func step(max int, index int) int {
 	return index + 1
 }
 
-// Add adds an endpoint instance to b.endpoints.
+// Add() adds an endpoint instance to b.endpoints.
 // New endpoints are always marked by default as healthy.
 func (b *Balancer) Add(addr string) {
 	b.mu.Lock()
@@ -133,10 +135,18 @@ func (b *Balancer) Add(addr string) {
 	}
 }
 
-func (b *Balancer) Size() int {
-	return b.size
+func (b *Balancer) ResetCurr() {
+	if b.size == 0 {
+		return
+	}
+
+	b.curr = 0
 }
 
 func (b *Balancer) Curr() int {
 	return b.curr
+}
+
+func (b *Balancer) Size() int {
+	return b.size
 }
