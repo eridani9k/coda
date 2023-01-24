@@ -8,10 +8,6 @@ _**This is sample code. DO NOT deploy this in a production environment!**_
 
 ## Usage
 
-A full deployment of this example consists of:
-- 1 `Router` process which acts as a _reverse proxy_.
-- 1..N backend `API` processes load balanced by the `Router`.
-
 ### addresses.cfg
 
 `addresses.cfg` is a newline-delimited text file containing the list of backend addresses to be registered during the initialization of the `Router`. This file allows no other information; comments are not allowed.
@@ -34,14 +30,41 @@ Each Golang process can be run either as a `Router` or an `API` server.
 ```golang
 // From the application root directory.
 
-// Launch a router using local port 8080.
-$ go run main.go router 8080
-
 // Launch an API backend using local port 8081.
 $ go run main.go api 8081
+
+// Launch a router using local port 8080.
+$ go run main.go router 8080
 ```
 
 There is no limit to the number of processes run, as long as local ports are available.
+
+### Deployment Example
+
+A full deployment of this example consists of:
+- 1 `Router` process which acts as a _reverse proxy_.
+- 1..N backend `API` processes load balanced by the `Router`.
+
+In this example: 
+- 1 `Router` process is launched on local port 8080.
+- 3 `API` processes are launched on local ports 8081, 8082, and 8083.
+
+```golang
+// From the application root directory.
+// Each command in this block is launched in a separate window as all processes are blocking.
+
+// Launching the API processes.
+$ go run main.go api 8081
+$ go run main.go api 8082
+$ go run main.go api 8083
+
+// Launching the Router process.
+$ go run main.go router 8080
+```
+
+The `API` processes should be launched before the `Router` since all endpoints are pinged for health before registration into the load balancing algorithm.
+
+
 
 ## Unit Tests & Coverage
 
