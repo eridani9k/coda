@@ -26,7 +26,7 @@ There is no limit to the number of processes run, as long as local ports are ava
 ```golang
 $ go test -cover ./...
 
-?   	coda	[no test files]
+?   	coda		[no test files]
 ?   	coda/api	[no test files]
 ok  	coda/router	0.096s	coverage: 28.1% of statements
 ok  	coda/utils	0.081s	coverage: 50.0% of statements
