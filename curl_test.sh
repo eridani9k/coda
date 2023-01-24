@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for (( i=0; i<999; i++)); do
+for (( i=0; i<20; i++)); do
 
 	printf "POST with valid JSON:\n"
 	curl -i -X POST 127.0.0.1:8080/echo \

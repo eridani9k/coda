@@ -41,13 +41,15 @@ There is no limit to the number of processes run, as long as local ports are ava
 
 ### Deployment Example
 
-A full deployment of this example consists of:
+This example consists of:
 - 1 `Router` process which acts as a _reverse proxy_.
 - 1..N backend `API` processes load balanced by the `Router`.
 
 In this example: 
 - 1 `Router` process is launched on local port 8080.
 - 3 `API` processes are launched on local ports 8081, 8082, and 8083. These 3 addresses were defined in `addresses.cfg`.
+
+The `API` processes should be launched before the `Router` since all endpoints are pinged for health before registration into the load balancing algorithm.
 
 ```golang
 // Executed from the application root directory.
@@ -59,14 +61,14 @@ $ go run main.go api 8081
 $ go run main.go api 8082
 $ go run main.go api 8083
 
-/* expected output
+/* Expected output:
 [ 2023-01-24T18:52:07+08:00 ] Starting server on port 8081...
 */
 
 // Launching the Router process.
 $ go run main.go router 8080
 
-/* expected output
+/* Expected output:
 [ 2023-01-24T18:53:44+08:00 ] Registered address http://127.0.0.1:8081 successfully!
 [ 2023-01-24T18:53:44+08:00 ] Registered address http://127.0.0.1:8082 successfully!
 [ 2023-01-24T18:53:44+08:00 ] Registered address http://127.0.0.1:8083 successfully!
@@ -74,8 +76,23 @@ $ go run main.go router 8080
 */
 ```
 
-The `API` processes should be launched before the `Router` since all endpoints are pinged for health before registration into the load balancing algorithm.
+Run `curl_test.sh <ROUTER_PORT>` to start sending requests to the `Router` process.
 
+```bash
+$ ./curl_test.sh 8080
+```
+
+The `Router` should now print routing destinations in a round-robin basis:
+```
+[ 2023-01-24T19:02:48+08:00 ] Routing to http://127.0.0.1:8081...
+[ 2023-01-24T19:02:51+08:00 ] Routing to http://127.0.0.1:8082...
+[ 2023-01-24T19:02:54+08:00 ] Routing to http://127.0.0.1:8083...
+[ 2023-01-24T19:02:57+08:00 ] Routing to http://127.0.0.1:8081...
+[ 2023-01-24T19:03:00+08:00 ] Routing to http://127.0.0.1:8082...
+[ 2023-01-24T19:03:03+08:00 ] Routing to http://127.0.0.1:8083...
+
+...
+```
 
 ## Unit Tests & Coverage
 
