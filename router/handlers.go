@@ -72,7 +72,7 @@ func Initialize(port uint, addresses []string) {
 
 		// Copy backend's StatusCode and Body into the new response.
 		w.WriteHeader(resp.StatusCode)
-		io.Copy(w, r.Body)
+		io.Copy(w, resp.Body)
 	})
 
 	utils.TimestampMsg(fmt.Sprintf("Starting router on port %d...", port))
@@ -174,5 +174,5 @@ func prepareForwardingRequest(r *http.Request, targetAddr string) {
 
 	// Attempt to resolve the issue of connections getting EOF'd when
 	// they are terminated (CTRL-c) from the command line.
-	r.Close = true
+	//r.Close = true
 }
