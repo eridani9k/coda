@@ -48,10 +48,7 @@ func Initialize(port uint, addresses []string) {
 
 			prepareForwardingRequest(r, targetAddr)
 
-			utils.TimestampMsg(fmt.Sprintf("Routing to %s...", targetAddr))
-
 			// FIXME: Killing endpoints often takes down others as well.
-
 			resp, forwardErr = httpClient.Do(r)
 			if forwardErr != nil {
 				utils.TimestampMsg(fmt.Sprintf("Error routing to %s...", targetAddr))
@@ -60,6 +57,8 @@ func Initialize(port uint, addresses []string) {
 				continue
 			}
 			defer resp.Body.Close()
+
+			utils.TimestampMsg(fmt.Sprintf("Request routed to %s.", targetAddr))
 		}
 
 		// Copy all key-value pairs from the backend's
