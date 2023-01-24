@@ -10,10 +10,20 @@ var (
 )
 
 type Balancer struct {
+	// endpoints stores the currently registered endpoints
+	// within the Balancer.
 	endpoints []*endpoint
-	curr      int // -1 indicates no valid endpoints.
-	size      int
 
+	// curr marks the location of current endpoint used
+	// for routing. curr = -1 indicates that there are no
+	// valid endpoints for routing.
+	curr int
+
+	// size is the length of endpoints.
+	size int
+
+	// A mutex provides mutual exclusion to ensure only one
+	// process modifies the Balancer at any one time.
 	mu sync.Mutex
 }
 
@@ -75,11 +85,10 @@ func (b *Balancer) nextHealthy() error {
 	return nil
 }
 
-// seekHealthy() returns the index of the next healthy
-// endpoint starting from the endpoint after index.
-// seekHealthy() returns -1 if there is no healthy endpoint found.
-// seekHealthy() will check for health at most len(endpoints) times.
-// TODO: rewrite this description.
+// seekHealthy() returns the index of the next healthy endpoint
+// starting from the endpoint after index. seekHealthy() traverses
+// b.endpoints a maximum of len(b.endpoints) times, and returns -1
+// if no healthy endpoint is found.
 func (b *Balancer) seekHealthy(index int) int {
 	k := b.step(index)
 	for k != index {
@@ -118,7 +127,7 @@ func step(max int, index int) int {
 }
 
 // Add() adds an endpoint instance to b.endpoints.
-// New endpoints are always marked by default as healthy.
+// New endpoints are always marked healthy by default.
 func (b *Balancer) Add(addr string) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
@@ -135,10 +144,17 @@ func (b *Balancer) Add(addr string) {
 	}
 }
 
+// ResetCurr() is called when one endpoint has recovered
+// from an ErrNoValidEndpoints scenario. ResetCurr() sets
+// b.curr to 0 so that seekHealthy() can begin a new search
+// for the next healthy endpoint.
 func (b *Balancer) ResetCurr() {
 	if b.size == 0 {
 		return
 	}
+
+	b.mu.Lock()
+	defer b.mu.Unlock()
 
 	b.curr = 0
 }
