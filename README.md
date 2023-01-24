@@ -59,12 +59,10 @@ In this example:
 - 1 `Router` process is launched on local port 8080.
 - 3 `API` processes are launched on local ports 8081, 8082, and 8083. These 3 addresses were defined in `addresses.cfg`.
 
-The `API` processes should be launched before the `Router` since all endpoints are pinged for health before registration into the load balancing algorithm.
+**Each command within the following code block should be launched within its own terminal window/process as each process is blocking.** The `API` processes should be launched before the `Router` process since all endpoints are pinged for health before registration to the reverse proxy.
 
 ```golang
 // Executed from the application root directory.
-// Each command in this block is launched in a separate
-// terminal window as all processes are blocking.
 
 // Launching the API processes.
 $ go run main.go api 8081
