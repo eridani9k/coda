@@ -11,6 +11,7 @@ A full deployment of this example consists of:
 ### addresses.cfg
 `addresses.cfg` is a newline-delimited text file containing the list of backend addresses to be registered during the initialization of the `Router`. This file allows no other information; comments are not allowed.
 
+Example `addresses.cfg`:
 ```
 http://127.0.0.1:8081
 http://127.0.0.1:8082
