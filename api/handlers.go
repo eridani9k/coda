@@ -11,7 +11,10 @@ import (
 	"coda/utils"
 )
 
-func HandleRequests(port uint) {
+// Initialize() creates the API server multiplexer
+// and registers several URL endpoint patterns to their
+// respective handling functions.
+func Initialize(port uint) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
 	mux.HandleFunc("/echo", echo)
@@ -34,12 +37,12 @@ func HandleRequests(port uint) {
 	}
 }
 
+// echo() responds with the same body as the request.
+// The request must have the POST method and must contain
+// a valid JSON body.
 func echo(w http.ResponseWriter, r *http.Request) {
-	showEndpoint("/echo")
-
-	// TODO: Find a way to utilize r.Context() instead of using
-	// showEndpoint().
-	//fmt.Println(r.Context())
+	// TODO: Find a way to utilize r.Context() instead of using showEndpoint().
+	// showEndpoint("/echo")
 
 	// API only accepts POST
 	if r.Method != http.MethodPost {
@@ -49,7 +52,8 @@ func echo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FIXME: EOF issue with request body being closed too early.
+	// FIXME: EOF propagation issue with request body being closed
+	// too early when OTHER servers are killed via CTRL-c.
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -70,7 +74,7 @@ func echo(w http.ResponseWriter, r *http.Request) {
 	utils.TimestampMsg(fmt.Sprintf("response: %s", string(body)))
 }
 
-// ping allows heartbeart checking and returns 200.
+// ping() allows heartbeart checking and returns 200.
 func ping(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
@@ -80,6 +84,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the homepage!")
 }
 
+// showEndpoint() prints a string to STDOUT.
+// Used as a debug utility.
 func showEndpoint(endpoint string) {
 	utils.TimestampMsg(fmt.Sprintf("Endpoint hit: %s", endpoint))
 }

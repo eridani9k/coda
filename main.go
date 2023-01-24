@@ -64,9 +64,9 @@ func main() {
 	}
 
 	if serverType == serverTypeRouter {
-		router.InitRouter(uint(port), readAddressFile(addressFile))
+		router.Initialize(uint(port), readAddressFile(addressFile))
 	} else {
-		api.HandleRequests(uint(port))
+		api.Initialize(uint(port))
 	}
 }
 

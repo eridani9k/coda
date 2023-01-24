@@ -12,10 +12,10 @@ import (
 	"coda/utils"
 )
 
-// InitRouter() creates the reverse proxy process,
+// Initialize() creates the reverse proxy process,
 // builds an initial list of healthy backend targets,
-// and serves the proxy (blocking).
-func InitRouter(port uint, addresses []string) {
+// and serves the reverse proxy (blocking).
+func Initialize(port uint, addresses []string) {
 	balancer := initBalancer(addresses)
 
 	// Set health check interval to 2 seconds.
