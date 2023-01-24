@@ -1,5 +1,13 @@
 # Routing API (Round-Robin)
 
+## Table of Contents
+- [Introduction](#introduction)
+- [Usage](#usage)
+    - [addresses.cfg](#addresses.cfg)
+    - [Running the Application](#running-the-application)
+    - [Deployment Example](#deployment-example)
+- [Unit Tests & Coverage](#unit-tests-&-coverage)
+
 ## Introduction
 
 This repository contains code for an example routing API backed by a round-robin load balancing algorithm. The code was designed for the purposes of code quality review, and kept bare-bones in terms of setup and infrastructure.
