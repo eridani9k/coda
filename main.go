@@ -70,7 +70,7 @@ func main() {
 	}
 }
 
-// readAddressFile() reads a line-separated text file containing
+// readAddressFile() reads a newline-delimited text file containing
 // the addresses of each backend endpoint. Each address needs to
 // be fully qualified (e.g. scheme, domain, port).
 // The text file being read should not contain any other types of

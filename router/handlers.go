@@ -21,6 +21,11 @@ func InitRouter(port uint, addresses []string) {
 	// Set health check interval to 2 seconds.
 	initHealthChecks(balancer, 2)
 
+	// Reusable HTTP client for proxying requests.
+	httpClient := &http.Client{
+		Transport: &http.Transport{},
+	}
+
 	proxy := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var forwardErr error
 		var resp *http.Response
@@ -46,9 +51,6 @@ func InitRouter(port uint, addresses []string) {
 			utils.TimestampMsg(fmt.Sprintf("Routing to %s...", targetAddr))
 
 			// FIXME: Killing endpoints often takes down others as well.
-			httpClient := &http.Client{
-				Transport: &http.Transport{},
-			}
 
 			resp, forwardErr = httpClient.Do(r)
 			if forwardErr != nil {
