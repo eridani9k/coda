@@ -8,6 +8,16 @@ A full deployment of this example consists of:
 - 1 `Router` process which acts as a _reverse proxy_.
 - 1..N backend `API` processes load balanced by the `Router`.
 
+### addresses.cfg
+`addresses.cfg` is a newline-delimited text file containing the list of backend addresses to be registered during the initialization of the `Router`. This file allows no other information; comments are not allowed.
+
+```
+http://127.0.0.1:8081
+http://127.0.0.1:8082
+http://127.0.0.1:8083
+```
+
+### Running the Application
 Each Golang process run can either be a `Router` or `API` server.
 
 ```golang
