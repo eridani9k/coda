@@ -20,5 +20,4 @@ func timestampMsg(message string, timestamp time.Time) string {
 	}
 
 	return fmt.Sprintf("[ %s ] %s", timestamp.Format(time.RFC3339), message)
-	// fmt.Printf("[ %s ] %s\n", timestamp.Format(time.RFC3339), message)
 }
