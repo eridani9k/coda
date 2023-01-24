@@ -28,7 +28,7 @@ During `Router` initialization, each address is sent a `/ping` request to verify
 Each Golang process can be run either as a `Router` or an `API` server.
 
 ```golang
-// From the application root directory.
+// Executed from the application root directory.
 
 // Launch an API backend using local port 8081.
 $ go run main.go api 8081
@@ -47,23 +47,34 @@ A full deployment of this example consists of:
 
 In this example: 
 - 1 `Router` process is launched on local port 8080.
-- 3 `API` processes are launched on local ports 8081, 8082, and 8083.
+- 3 `API` processes are launched on local ports 8081, 8082, and 8083. These 3 addresses were defined in `addresses.cfg`.
 
 ```golang
-// From the application root directory.
-// Each command in this block is launched in a separate window as all processes are blocking.
+// Executed from the application root directory.
+// Each command in this block is launched in a separate
+// terminal window as all processes are blocking.
 
 // Launching the API processes.
 $ go run main.go api 8081
 $ go run main.go api 8082
 $ go run main.go api 8083
 
+/* expected output
+[ 2023-01-24T18:52:07+08:00 ] Starting server on port 8081...
+*/
+
 // Launching the Router process.
 $ go run main.go router 8080
+
+/* expected output
+[ 2023-01-24T18:53:44+08:00 ] Registered address http://127.0.0.1:8081 successfully!
+[ 2023-01-24T18:53:44+08:00 ] Registered address http://127.0.0.1:8082 successfully!
+[ 2023-01-24T18:53:44+08:00 ] Registered address http://127.0.0.1:8083 successfully!
+[ 2023-01-24T18:53:44+08:00 ] Starting router on port 8080...
+*/
 ```
 
 The `API` processes should be launched before the `Router` since all endpoints are pinged for health before registration into the load balancing algorithm.
-
 
 
 ## Unit Tests & Coverage
