@@ -23,7 +23,6 @@ During `Router` initialization, each address is sent a `/ping` request to verify
 
 **NOTE**: This implementation currently does not support adding backend endpoints after `Router` has completed initialization. Therefore, only the addresses in `addresses.cfg` are considered during load balancing.
 
-
 ### Running the Application
 
 Each Golang process can be run either as a `Router` or an `API` server.
@@ -39,7 +38,6 @@ $ go run main.go router 8080
 ```
 
 There is no limit to the number of processes run, as long as local ports are available.
-
 
 ### Deployment Example
 
