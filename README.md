@@ -4,7 +4,7 @@
 
 This repository contains code for an example routing API backed by a round-robin load balancing algorithm. The code was designed for the purposes of code quality review, and kept bare-bones in terms of setup and infrastructure.
 
-_**DO NOT use this is production!**_
+_**This is sample code. DO NOT deploy this in a production environment!**_
 
 ## Usage
 
@@ -29,7 +29,7 @@ During `Router` initialization, each address is sent a `/ping` request to verify
 
 ### Running the Application
 
-Each Golang process run can either be a `Router` or `API` server.
+Each Golang process can be run either as a `Router` or an `API` server.
 
 ```golang
 // From the application root directory.
