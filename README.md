@@ -12,7 +12,7 @@ _**This is sample code. DO NOT deploy this in a production environment!**_
 
 `addresses.cfg` is a newline-delimited text file containing the list of backend addresses to be registered during the initialization of the `Router`. This file allows no other information; comments are not allowed.
 
-The following `addresses.cfg` registers the local ports 8081, 8082, and 8083 as backend `API` processes.
+The following `addresses.cfg` configures local ports 8081, 8082, and 8083 to be registered as backend `API` processes.
 ```
 http://127.0.0.1:8081
 http://127.0.0.1:8082
