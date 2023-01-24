@@ -115,7 +115,7 @@ func initHealthChecks(balancer *Balancer, secondInterval int) {
 			select {
 			case <-done:
 				return
-			case _ = <-ticker.C:
+			case <-ticker.C:
 				healthCheck(balancer)
 			}
 		}
@@ -140,7 +140,7 @@ func healthCheck(balancer *Balancer) {
 
 		// Notify if endpoint is recovering from an unhealthy state.
 		if !endpoint.isHealthy() {
-			utils.TimestampMsg(fmt.Sprintf("%s recovering from unhealthy state.", address))
+			utils.TimestampMsg(fmt.Sprintf("%s recovering from an unhealthy state.", address))
 			balancer.ResetCurr()
 		}
 
