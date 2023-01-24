@@ -41,7 +41,7 @@ There is no limit to the number of processes run, as long as local ports are ava
 
 ### Deployment Example
 
-This example consists of:
+This example consists of the following deployments and showcases basic round-robin routing:
 - 1 `Router` process which acts as a _reverse proxy_.
 - 1..N backend `API` processes load balanced by the `Router`.
 
