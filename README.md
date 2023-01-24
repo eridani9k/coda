@@ -93,7 +93,7 @@ Run `curl.sh <ROUTER_PORT>` to start sending requests to the `Router` process.
 $ ./curl.sh 8080
 ```
 
-The `Router` should now print routing destinations in a round-robin basis:
+The `Router` should now print routing destinations on a round-robin basis:
 ```
 [ 2023-01-24T19:02:48+08:00 ] Request routed to http://127.0.0.1:8081...
 [ 2023-01-24T19:02:51+08:00 ] Request routed to http://127.0.0.1:8082...
