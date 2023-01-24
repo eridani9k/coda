@@ -11,12 +11,14 @@ A full deployment of this example consists of:
 ### addresses.cfg
 `addresses.cfg` is a newline-delimited text file containing the list of backend addresses to be registered during the initialization of the `Router`. This file allows no other information; comments are not allowed.
 
-Example `addresses.cfg`:
+The following `addresses.cfg` registers the local ports 8081, 8082, and 8083 as backend `API` processes.
 ```
 http://127.0.0.1:8081
 http://127.0.0.1:8082
 http://127.0.0.1:8083
 ```
+
+During `Router` initialization, each address is sent a `/ping` request to verify endpoint health. Only healthy endpoints will be added to `Router`'s load balancing algorithm.
 
 ### Running the Application
 Each Golang process run can either be a `Router` or `API` server.
