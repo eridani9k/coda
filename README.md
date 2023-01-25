@@ -10,7 +10,7 @@
 
 ## Introduction
 
-This repository contains code for an example routing API backed by a round-robin load balancing algorithm. The code was designed for the purposes of code quality review, and kept bare-bones in terms of setup and infrastructure.
+This repository contains Golang code for an example routing API backed by a round-robin load balancing algorithm. The code was designed for the purposes of code quality review, and kept bare-bones in terms of setup and infrastructure.
 
 Head to [Deployment Example](#deployment-example) for a quickstart guide.
 
