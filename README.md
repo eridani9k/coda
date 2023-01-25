@@ -91,7 +91,7 @@ Run `curl.sh <ROUTER_PORT>` to start sending requests to the `Router` process.
 $ ./curl.sh 8080
 ```
 
-The `Router` should now print routing destinations on a round-robin basis:
+The `Router` should now route requests on a round-robin basis:
 ```golang
 /* Expected output:
 [ 2023-01-24T19:02:48+08:00 ] Request routed to http://127.0.0.1:8081...
@@ -102,6 +102,17 @@ The `Router` should now print routing destinations on a round-robin basis:
 [ 2023-01-24T19:03:03+08:00 ] Request routed to http://127.0.0.1:8083...
 ...
 */
+```
+
+`curl.sh` will print out each response from the `Router`:
+```
+Script will run for 100 curl iterations.
+Response: {"iteration": "1", "game":"Mobile Legends", "gamerID":"GYUTDTE", "points":20}
+Response: {"iteration": "2", "game":"Mobile Legends", "gamerID":"GYUTDTE", "points":20}
+Response: {"iteration": "3", "game":"Mobile Legends", "gamerID":"GYUTDTE", "points":20}
+Response: {"iteration": "4", "game":"Mobile Legends", "gamerID":"GYUTDTE", "points":20}
+Response: {"iteration": "5", "game":"Mobile Legends", "gamerID":"GYUTDTE", "points":20}
+...
 ```
 
 ## Unit Tests & Coverage
